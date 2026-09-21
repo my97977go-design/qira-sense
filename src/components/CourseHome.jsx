@@ -30,8 +30,8 @@ export default function CourseHome({ game, muted }) {
     chapterDone = course.chapterDone;
   return (
     <div className="course-home">
-      <ParticleField holeRef={heroArtRef} />
       <section className="course-hero">
+        <ParticleField holeRef={heroArtRef} />
         <div className="course-hero-copy">
           <div className="brand-kicker">
             <span /> QIRA SENSE <i /> 聆听 · 理解 · 表达

@@ -1,8 +1,8 @@
 import { useEffect, useRef } from "react";
 
-// 整页背景粒子场：挂载在页面根容器，位于所有板块图层之下。
-// 全部粒子为柔边外发光小光点（无硬边圆球），亮度克制、明暗呼吸；
-// 漂浮时主动绕开避让区（如触碰弦模型）：靠近时被推开并进一步变淡。
+// 首页首屏背景粒子场：位于 hero 内容图层之下，页面下半部分不出现粒子。
+// 全部粒子为柔边外发光小光点（无硬边圆球），亮度极低、明暗呼吸；
+// 以矩形禁区主动绕开触碰弦模型：进入禁区的粒子被推出且完全不可见。
 export default function ParticleField({ holeRef }) {
   const canvasRef = useRef(null);
 
@@ -33,7 +33,7 @@ export default function ParticleField({ holeRef }) {
       [214, 222, 196], // 月白
     ];
     const spawn = () => {
-      const n = Math.max(70, Math.min(170, Math.round((w * h) / 14000)));
+      const n = Math.max(40, Math.min(90, Math.round((w * h) / 16000)));
       particles = Array.from({ length: n }, () => ({
         x: Math.random() * w,
         y: Math.random() * h,
@@ -46,17 +46,19 @@ export default function ParticleField({ holeRef }) {
       }));
     };
 
-    // 避让区（hole）：返回画布坐标系下的中心与半径。
+    // 避让禁区（hole）：模型包围盒外扩 margin，返回画布坐标系矩形。
     const hole = () => {
       const el = holeRef?.current;
       if (!el) return null;
       const c = canvas.getBoundingClientRect();
       const r = el.getBoundingClientRect();
       if (!r.width || !r.height) return null;
+      const m = 26;
       return {
-        x: r.left + r.width / 2 - c.left,
-        y: r.top + r.height / 2 - c.top,
-        rad: Math.max(r.width, r.height) * 0.62,
+        x0: r.left - c.left - m,
+        y0: r.top - c.top - m,
+        x1: r.right - c.left + m,
+        y1: r.bottom - c.top + m,
       };
     };
 
@@ -88,14 +90,12 @@ export default function ParticleField({ holeRef }) {
       const hp = hole();
       for (const p of particles) {
         const breath = 0.5 + 0.5 * Math.sin(t * 0.001 * p.bw + p.ph);
-        let a = 0.05 + 0.16 * breath; // 克制的存在感
+        let a = 0.03 + 0.1 * breath; // 极低的存在感
         if (hp) {
-          const dist = Math.hypot(p.x - hp.x, p.y - hp.y);
-          const k = Math.min(
-            1,
-            Math.max(0, (dist - hp.rad * 0.55) / (hp.rad * 0.85)),
-          );
-          a *= k;
+          // 到禁区边界的距离：禁区内为 0（完全不可见），边界外 90px 内渐显
+          const dx = Math.max(hp.x0 - p.x, 0, p.x - hp.x1);
+          const dy = Math.max(hp.y0 - p.y, 0, p.y - hp.y1);
+          a *= Math.min(1, Math.hypot(dx, dy) / 90);
         }
         if (a > 0.004) drawDot(p, a);
       }
@@ -107,16 +107,18 @@ export default function ParticleField({ holeRef }) {
         // 漂浮：基础速度 + 横向微摆
         p.x += p.vx + Math.sin(t * 0.0004 + p.ph) * 0.08;
         p.y += p.vy;
-        // 避让：靠近模型区域时被向外推开
-        if (hp) {
-          const dx = p.x - hp.x,
-            dy = p.y - hp.y;
-          const dist = Math.hypot(dx, dy) || 1;
-          if (dist < hp.rad * 1.25) {
-            const push = ((hp.rad * 1.25 - dist) / (hp.rad * 1.25)) * 0.5;
-            p.x += (dx / dist) * push;
-            p.y += (dy / dist) * push;
-          }
+        // 避让：进入模型禁区的粒子朝最近边界被推出
+        if (hp && p.x > hp.x0 && p.x < hp.x1 && p.y > hp.y0 && p.y < hp.y1) {
+          const dl = p.x - hp.x0,
+            dr = hp.x1 - p.x,
+            dt = p.y - hp.y0,
+            db = hp.y1 - p.y;
+          const min = Math.min(dl, dr, dt, db);
+          const s = 1.4;
+          if (min === dl) p.x -= s;
+          else if (min === dr) p.x += s;
+          else if (min === dt) p.y -= s;
+          else p.y += s;
         }
         if (p.x < -12) p.x = w + 12;
         else if (p.x > w + 12) p.x = -12;
