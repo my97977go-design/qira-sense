@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "note": "语境样本（contextual）取自《大起板》人工确认区间；标准独立样本（canonical）待教师补充后加入。",
+  "samples": [
+    {
+      "id": "ctx-up-glide-01",
+      "technique": "up-glide",
+      "kind": "contextual",
+      "songId": "daqiban-upload-001",
+      "annotationId": "manual-01",
+      "start": 1,
+      "end": 2,
+      "label": "上滑连续四次（语境样本）"
+    },
+    {
+      "id": "ctx-up-glide-02",
+      "technique": "up-glide",
+      "kind": "contextual",
+      "songId": "daqiban-upload-001",
+      "annotationId": "manual-11",
+      "start": 27,
+      "end": 28,
+      "label": "上滑连续四次（语境样本）"
+    },
+    {
+      "id": "ctx-vibrato-01",
+      "technique": "vibrato",
+      "kind": "contextual",
+      "songId": "daqiban-upload-001",
+      "annotationId": "manual-02",
+      "start": 2,
+      "end": 6,
+      "label": "揉弦 渐强（语境样本）"
+    },
+    {
+      "id": "ctx-vibrato-02",
+      "technique": "vibrato",
+      "kind": "contextual",
+      "songId": "daqiban-upload-001",
+      "annotationId": "manual-05",
+      "start": 13,
+      "end": 16,
+      "label": "揉弦 渐强（语境样本）"
+    },
+    {
+      "id": "ctx-down-glide-01",
+      "technique": "down-glide",
+      "kind": "contextual",
+      "songId": "daqiban-upload-001",
+      "annotationId": "manual-04",
+      "start": 10,
+      "end": 13,
+      "label": "下滑四次（语境样本）"
+    },
+    {
+      "id": "ctx-slide-vibrato-01",
+      "technique": "slide-vibrato",
+      "kind": "contextual",
+      "songId": "daqiban-upload-001",
+      "annotationId": "manual-07",
+      "start": 21,
+      "end": 22,
+      "label": "滑柔（语境样本）"
+    },
+    {
+      "id": "ctx-slide-vibrato-02",
+      "technique": "slide-vibrato",
+      "kind": "contextual",
+      "songId": "daqiban-upload-001",
+      "annotationId": "manual-08",
+      "start": 23,
+      "end": 24,
+      "label": "滑柔（语境样本）"
+    },
+    {
+      "id": "ctx-dayin-01",
+      "technique": "dayin",
+      "kind": "contextual",
+      "songId": "daqiban-upload-001",
+      "annotationId": "manual-12",
+      "start": 32,
+      "end": 33,
+      "label": "打音（语境样本）"
+    },
+    {
+      "id": "ctx-return-glide-01",
+      "technique": "return-glide",
+      "kind": "contextual",
+      "songId": "daqiban-upload-001",
+      "annotationId": "manual-13",
+      "start": 34,
+      "end": 35,
+      "label": "回滑音（语境样本）"
+    }
+  ]
+}

@@ -1,0 +1,147 @@
+{
+  "schemaVersion": 1,
+  "title": "从听见到听懂 · 中国音乐技法资料库",
+  "entries": [
+    {
+      "id": "up-glide",
+      "name": "上滑音",
+      "color": "#efbb79",
+      "animation": "up-glide",
+      "shortExplanation": "音高沿着连续的过程向上移动，让乐句产生向前推进、逐渐抬升的感觉。",
+      "pitchCue": "观察曲线是否连续上行，分辨滑动过程与两个独立音之间的跳进。",
+      "listeningCue": "听起点和终点之间有没有连贯的滑动，不只比较哪个音更高。",
+      "aestheticPrompt": "这次上滑让你感到推进、期待，还是别的变化？请联系原声说说理由。",
+      "commonConfusion": "上滑强调连续移动，不能仅凭后一个音更高就判断为上滑。",
+      "question": "你听见的是连续上行，还是两个音之间的跳跃？",
+      "reviewStatus": "teaching-draft",
+      "sourceNote": "教学解释初稿；例证技法与时间来自用户人工标注。",
+      "examples": [
+        {
+          "songId": "daqiban-upload-001",
+          "annotationIds": ["manual-01", "manual-11"]
+        }
+      ]
+    },
+    {
+      "id": "large-up-glide",
+      "name": "大上滑音",
+      "color": "#f1ca88",
+      "animation": "large-up-glide",
+      "shortExplanation": "大上滑音不是简单的升高，而是在短时间内完成明显的、具有方向性的音高移动，形成向上的张力。",
+      "pitchCue": "同时观察上行幅度与所用时间，留意较大范围的连续音高移动。",
+      "listeningCue": "把注意力放在滑行的跨度与速度，以及它怎样把声音推向高处。",
+      "aestheticPrompt": "这段上滑的张力来自哪里：跨度、速度，还是前后乐句的对比？",
+      "commonConfusion": "“大”不能只用固定音程阈值确定，也不应将普通上滑的例证自动改标为大上滑。",
+      "question": "与普通上滑相比，这次移动在幅度和时间上有什么不同？",
+      "reviewStatus": "teaching-draft",
+      "sourceNote": "解释根据用户课程理念整理；当前录音没有单独确认的大上滑音例证。",
+      "examples": []
+    },
+    {
+      "id": "down-glide",
+      "name": "下滑音",
+      "color": "#8ac7cf",
+      "animation": "down-glide",
+      "shortExplanation": "音高连续向下滑行，使声音的走向发生回落，改变乐句的收束感与语气。",
+      "pitchCue": "观察曲线连续下降的方向、幅度和速度。",
+      "listeningCue": "听清声音是怎样落下来的：迅速下坠，还是缓慢回落。",
+      "aestheticPrompt": "这里的下滑让乐句更舒缓、更感叹，还是更有力度？说明你听到的依据。",
+      "commonConfusion": "下行旋律不一定使用下滑音，要听见音高之间的连续过渡。",
+      "question": "这段声音的音高主要向哪个方向移动？",
+      "reviewStatus": "teaching-draft",
+      "sourceNote": "教学解释初稿；例证来自用户人工标注。",
+      "examples": [
+        { "songId": "daqiban-upload-001", "annotationIds": ["manual-04"] }
+      ]
+    },
+    {
+      "id": "vibrato",
+      "name": "揉弦",
+      "color": "#bcb4e6",
+      "animation": "vibrato",
+      "shortExplanation": "音高围绕一个位置反复细微起伏，使持续的声音更有变化，也让乐句的情感表达更加细腻。",
+      "pitchCue": "观察音高附近反复出现的起伏；强弱变化还需要结合声音能量，不能只看曲线高度。",
+      "listeningCue": "在长音中听细小而持续的波动，再比较渐强与渐弱时声音的表现。",
+      "aestheticPrompt": "同样的揉弦在渐强和渐弱时，给你的感受有什么不同？",
+      "commonConfusion": "揉弦不等于音量忽大忽小。音高、音量与音色需要结合起来听。",
+      "question": "长音是否始终平直，还是在一个音高附近反复起伏？",
+      "reviewStatus": "teaching-draft",
+      "sourceNote": "教学解释初稿；渐强、渐弱及区间来自用户人工标注。",
+      "examples": [
+        {
+          "songId": "daqiban-upload-001",
+          "annotationIds": ["manual-02", "manual-03", "manual-05", "manual-06"]
+        }
+      ]
+    },
+    {
+      "id": "slide-vibrato",
+      "name": "滑柔",
+      "color": "#a7c8ac",
+      "animation": "slide-vibrato",
+      "shortExplanation": "对照这段原声，留意滑动过程中细微的音高起伏，以及它对乐句衔接和语气的影响。",
+      "pitchCue": "先看整体的音高走向，再看走向之中是否伴随局部起伏。",
+      "listeningCue": "先听整个动作，再重听其中的滑动与波动。",
+      "aestheticPrompt": "这段变化怎样连接前后两个声音？你觉得它更连贯，还是更有转折？",
+      "commonConfusion": "“滑柔”保留人工表格原名；术语和具体演奏动作仍由教师进一步确认。",
+      "question": "这一处声音变化怎样把前后乐句连接起来？",
+      "reviewStatus": "terminology-review",
+      "sourceNote": "人工表原名为“滑柔”；此处是聆听引导，不替代正式术语界定。",
+      "examples": [
+        {
+          "songId": "daqiban-upload-001",
+          "annotationIds": ["manual-07", "manual-08", "manual-09", "manual-10"]
+        }
+      ]
+    },
+    {
+      "id": "dayin",
+      "name": "打音",
+      "color": "#f29583",
+      "animation": "dayin",
+      "shortExplanation": "短促的手指触弦装饰让音头出现鲜明变化，给乐句增加颗粒感与强调。",
+      "pitchCue": "关注短时间内的局部变化，同时结合起音和音色；单独一条音高曲线可能不足以辨认。",
+      "listeningCue": "重听音头的短促触碰，分辨它与延续音之间的差别。",
+      "aestheticPrompt": "少了这次短促的装饰，乐句的语气会有什么不同？",
+      "commonConfusion": "并不是每一个明显的起音都是打音，应结合人工标注和原声。",
+      "question": "装饰主要出现在短促的音头，还是持续的长音中？",
+      "reviewStatus": "teaching-draft",
+      "sourceNote": "教学解释初稿；例证来自用户人工标注。",
+      "examples": [
+        { "songId": "daqiban-upload-001", "annotationIds": ["manual-12"] }
+      ]
+    },
+    {
+      "id": "return-glide",
+      "name": "回滑音",
+      "color": "#9ccdd8",
+      "animation": "return-glide",
+      "shortExplanation": "音高滑离原来的位置再回转，让一个声音内部出现往返的动作，形成有转折的语气。",
+      "pitchCue": "观察滑动的离开与回转，注意前后是否回到原音高附近。",
+      "listeningCue": "听清声音往哪里滑、在哪里转向、怎样回来。",
+      "aestheticPrompt": "这个回转让你想到怎样的语气？请用曲线中的转折支持你的描述。",
+      "commonConfusion": "不要把一次普通上滑或下滑误认为完整的往返动作。",
+      "question": "声音在滑动后有没有回转？",
+      "reviewStatus": "teaching-draft",
+      "sourceNote": "教学解释初稿；例证来自用户人工标注。",
+      "examples": [
+        { "songId": "daqiban-upload-001", "annotationIds": ["manual-13"] }
+      ]
+    },
+    {
+      "id": "dianbow",
+      "name": "垫弓",
+      "color": "#b8c88c",
+      "animation": "dianbow",
+      "shortExplanation": "通过短小的弓段衔接调整乐句的连贯与重心，使声音之间的连接更有层次。",
+      "pitchCue": "结合音量包络、起音和前后连接观察，音高曲线不一定有显著变化。",
+      "listeningCue": "重听相邻声音之间的弓段衔接与轻重变化。",
+      "aestheticPrompt": "这一处衔接怎样改变了句子的重心和呼吸？",
+      "commonConfusion": "仅凭音高曲线难以确定弓法；应补充教师确认的原声或演奏视频。",
+      "question": "相邻声音之间的衔接与强调发生了什么变化？",
+      "reviewStatus": "teaching-draft",
+      "sourceNote": "可扩充的教学条目；当前录音没有人工确认的垫弓例证。",
+      "examples": []
+    }
+  ]
+}

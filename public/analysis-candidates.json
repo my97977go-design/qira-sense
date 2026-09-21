@@ -1,0 +1,766 @@
+{
+  "duration": 38.87734693877551,
+  "sourceSha256": "6bbe1729182f2d8bfadeb57fda3f4979f29529c593d3942eacd868a23a7b1a05",
+  "voicedRatio": 0.7438271604938271,
+  "pitchQuantilesHz": [
+    748.3818143577511,
+    893.140094062106,
+    1115.8686641090565
+  ],
+  "onsets": [
+    {
+      "time": 0.795,
+      "strength": 2.236
+    },
+    {
+      "time": 1.194,
+      "strength": 1.111
+    },
+    {
+      "time": 1.533,
+      "strength": 1.758
+    },
+    {
+      "time": 1.902,
+      "strength": 1.1
+    },
+    {
+      "time": 2.231,
+      "strength": 1.75
+    },
+    {
+      "time": 2.85,
+      "strength": 0.277
+    },
+    {
+      "time": 3.578,
+      "strength": 0.254
+    },
+    {
+      "time": 3.938,
+      "strength": 0.431
+    },
+    {
+      "time": 4.307,
+      "strength": 0.742
+    },
+    {
+      "time": 4.676,
+      "strength": 1.026
+    },
+    {
+      "time": 5.035,
+      "strength": 1.0
+    },
+    {
+      "time": 5.384,
+      "strength": 0.942
+    },
+    {
+      "time": 5.753,
+      "strength": 0.907
+    },
+    {
+      "time": 6.123,
+      "strength": 0.873
+    },
+    {
+      "time": 6.492,
+      "strength": 0.933
+    },
+    {
+      "time": 6.791,
+      "strength": 0.738
+    },
+    {
+      "time": 7.21,
+      "strength": 0.489
+    },
+    {
+      "time": 7.519,
+      "strength": 0.39
+    },
+    {
+      "time": 7.939,
+      "strength": 0.289
+    },
+    {
+      "time": 8.328,
+      "strength": 0.239
+    },
+    {
+      "time": 8.677,
+      "strength": 0.182
+    },
+    {
+      "time": 9.036,
+      "strength": 0.261
+    },
+    {
+      "time": 9.385,
+      "strength": 0.327
+    },
+    {
+      "time": 9.774,
+      "strength": 0.43
+    },
+    {
+      "time": 10.094,
+      "strength": 1.16
+    },
+    {
+      "time": 10.662,
+      "strength": 1.089
+    },
+    {
+      "time": 11.031,
+      "strength": 1.491
+    },
+    {
+      "time": 11.411,
+      "strength": 1.207
+    },
+    {
+      "time": 11.77,
+      "strength": 1.699
+    },
+    {
+      "time": 12.319,
+      "strength": 0.214
+    },
+    {
+      "time": 13.426,
+      "strength": 0.161
+    },
+    {
+      "time": 13.795,
+      "strength": 0.212
+    },
+    {
+      "time": 14.344,
+      "strength": 0.399
+    },
+    {
+      "time": 14.583,
+      "strength": 0.752
+    },
+    {
+      "time": 14.933,
+      "strength": 1.054
+    },
+    {
+      "time": 15.292,
+      "strength": 1.003
+    },
+    {
+      "time": 15.651,
+      "strength": 0.943
+    },
+    {
+      "time": 16.01,
+      "strength": 1.065
+    },
+    {
+      "time": 16.359,
+      "strength": 0.639
+    },
+    {
+      "time": 16.739,
+      "strength": 0.55
+    },
+    {
+      "time": 17.158,
+      "strength": 0.549
+    },
+    {
+      "time": 17.477,
+      "strength": 0.415
+    },
+    {
+      "time": 17.856,
+      "strength": 0.208
+    },
+    {
+      "time": 18.205,
+      "strength": 0.187
+    },
+    {
+      "time": 19.373,
+      "strength": 0.513
+    },
+    {
+      "time": 19.762,
+      "strength": 0.864
+    },
+    {
+      "time": 20.121,
+      "strength": 1.485
+    },
+    {
+      "time": 20.49,
+      "strength": 0.972
+    },
+    {
+      "time": 20.789,
+      "strength": 0.455
+    },
+    {
+      "time": 21.069,
+      "strength": 0.51
+    },
+    {
+      "time": 21.438,
+      "strength": 1.32
+    },
+    {
+      "time": 21.767,
+      "strength": 1.204
+    },
+    {
+      "time": 22.056,
+      "strength": 1.171
+    },
+    {
+      "time": 22.406,
+      "strength": 0.46
+    },
+    {
+      "time": 22.964,
+      "strength": 0.962
+    },
+    {
+      "time": 23.543,
+      "strength": 1.129
+    },
+    {
+      "time": 24.072,
+      "strength": 0.669
+    },
+    {
+      "time": 24.341,
+      "strength": 0.932
+    },
+    {
+      "time": 24.631,
+      "strength": 0.793
+    },
+    {
+      "time": 25.1,
+      "strength": 1.079
+    },
+    {
+      "time": 25.409,
+      "strength": 0.545
+    },
+    {
+      "time": 25.858,
+      "strength": 1.027
+    },
+    {
+      "time": 26.177,
+      "strength": 0.753
+    },
+    {
+      "time": 26.686,
+      "strength": 0.887
+    },
+    {
+      "time": 27.215,
+      "strength": 0.625
+    },
+    {
+      "time": 27.494,
+      "strength": 1.421
+    },
+    {
+      "time": 27.803,
+      "strength": 0.898
+    },
+    {
+      "time": 28.262,
+      "strength": 1.441
+    },
+    {
+      "time": 28.641,
+      "strength": 0.568
+    },
+    {
+      "time": 29.33,
+      "strength": 0.24
+    },
+    {
+      "time": 29.609,
+      "strength": 1.052
+    },
+    {
+      "time": 29.998,
+      "strength": 0.939
+    },
+    {
+      "time": 30.308,
+      "strength": 0.865
+    },
+    {
+      "time": 30.607,
+      "strength": 0.548
+    },
+    {
+      "time": 31.086,
+      "strength": 0.946
+    },
+    {
+      "time": 31.335,
+      "strength": 0.863
+    },
+    {
+      "time": 31.744,
+      "strength": 0.447
+    },
+    {
+      "time": 32.363,
+      "strength": 0.282
+    },
+    {
+      "time": 32.672,
+      "strength": 1.029
+    },
+    {
+      "time": 33.041,
+      "strength": 0.983
+    },
+    {
+      "time": 33.331,
+      "strength": 0.846
+    },
+    {
+      "time": 33.64,
+      "strength": 0.51
+    },
+    {
+      "time": 33.999,
+      "strength": 0.534
+    },
+    {
+      "time": 34.319,
+      "strength": 0.799
+    },
+    {
+      "time": 34.698,
+      "strength": 0.619
+    },
+    {
+      "time": 35.217,
+      "strength": 1.272
+    },
+    {
+      "time": 35.496,
+      "strength": 1.741
+    },
+    {
+      "time": 35.915,
+      "strength": 1.066
+    },
+    {
+      "time": 36.234,
+      "strength": 1.154
+    },
+    {
+      "time": 36.494,
+      "strength": 0.577
+    },
+    {
+      "time": 36.773,
+      "strength": 1.317
+    },
+    {
+      "time": 37.082,
+      "strength": 1.044
+    },
+    {
+      "time": 37.661,
+      "strength": 0.939
+    },
+    {
+      "time": 37.99,
+      "strength": 0.578
+    },
+    {
+      "time": 38.399,
+      "strength": 0.811
+    }
+  ],
+  "candidates": [
+    {
+      "kind": "up-glide",
+      "start": 0.844625850340136,
+      "end": 1.0142403628117913,
+      "score": 0.64665126224132,
+      "evidence": {
+        "pitchChangeCents": 148.3,
+        "directionalConsistency": 0.974,
+        "voicedRatio": 1.0,
+        "maxFrameChangeCents": 23.3
+      }
+    },
+    {
+      "kind": "up-glide",
+      "start": 1.5629931972789115,
+      "end": 1.732607709750567,
+      "score": 0.6823900095470717,
+      "evidence": {
+        "pitchChangeCents": 188.4,
+        "directionalConsistency": 0.984,
+        "voicedRatio": 1.0,
+        "maxFrameChangeCents": 40.5
+      }
+    },
+    {
+      "kind": "up-glide",
+      "start": 2.281360544217687,
+      "end": 2.4509750566893422,
+      "score": 0.681212409388787,
+      "evidence": {
+        "pitchChangeCents": 177.9,
+        "directionalConsistency": 0.996,
+        "voicedRatio": 1.0,
+        "maxFrameChangeCents": 36.2
+      }
+    },
+    {
+      "kind": "down-glide",
+      "start": 4.11718820861678,
+      "end": 4.286802721088435,
+      "score": 0.6502495161388332,
+      "evidence": {
+        "pitchChangeCents": -148.2,
+        "directionalConsistency": 0.98,
+        "voicedRatio": 1.0,
+        "maxFrameChangeCents": 41.0
+      }
+    },
+    {
+      "kind": "pitch-oscillation",
+      "start": 4.11718820861678,
+      "end": 5.104943310657596,
+      "score": 0.4690729520442361,
+      "evidence": {
+        "oscillationRateHz": 5.01,
+        "rangeCents": 121.3,
+        "bandEnergyRatio": 0.469,
+        "driftCents": -74.1
+      }
+    },
+    {
+      "kind": "up-glide",
+      "start": 4.276825396825397,
+      "end": 4.446439909297053,
+      "score": 0.6600200025562832,
+      "evidence": {
+        "pitchChangeCents": 146.7,
+        "directionalConsistency": 1.0,
+        "voicedRatio": 1.0,
+        "maxFrameChangeCents": 30.7
+      }
+    },
+    {
+      "kind": "down-glide",
+      "start": 4.755736961451247,
+      "end": 5.025124716553288,
+      "score": 0.5461507711376887,
+      "evidence": {
+        "pitchChangeCents": -149.4,
+        "directionalConsistency": 0.789,
+        "voicedRatio": 1.0,
+        "maxFrameChangeCents": 51.7
+      }
+    },
+    {
+      "kind": "up-glide",
+      "start": 4.995192743764172,
+      "end": 5.164807256235828,
+      "score": 0.5774135855848963,
+      "evidence": {
+        "pitchChangeCents": 150.7,
+        "directionalConsistency": 0.844,
+        "voicedRatio": 1.0,
+        "maxFrameChangeCents": 26.0
+      }
+    },
+    {
+      "kind": "pitch-oscillation",
+      "start": 6.3920181405895695,
+      "end": 7.379773242630385,
+      "score": 0.4587698233278192,
+      "evidence": {
+        "oscillationRateHz": 5.01,
+        "rangeCents": 66.7,
+        "bandEnergyRatio": 0.459,
+        "driftCents": 36.1
+      }
+    },
+    {
+      "kind": "up-glide",
+      "start": 10.10358276643991,
+      "end": 10.273197278911564,
+      "score": 0.6700626970614482,
+      "evidence": {
+        "pitchChangeCents": 218.7,
+        "directionalConsistency": 0.92,
+        "voicedRatio": 1.0,
+        "maxFrameChangeCents": 74.1
+      }
+    },
+    {
+      "kind": "down-glide",
+      "start": 10.263219954648527,
+      "end": 10.532607709750566,
+      "score": 0.701785755973136,
+      "evidence": {
+        "pitchChangeCents": -245.8,
+        "directionalConsistency": 0.941,
+        "voicedRatio": 1.0,
+        "maxFrameChangeCents": 61.6
+      }
+    },
+    {
+      "kind": "down-glide",
+      "start": 11.06140589569161,
+      "end": 11.231020408163266,
+      "score": 0.669251874978622,
+      "evidence": {
+        "pitchChangeCents": -187.5,
+        "directionalConsistency": 0.961,
+        "voicedRatio": 1.0,
+        "maxFrameChangeCents": 53.4
+      }
+    },
+    {
+      "kind": "up-glide",
+      "start": 15.451428571428572,
+      "end": 15.720816326530612,
+      "score": 0.6936601232165187,
+      "evidence": {
+        "pitchChangeCents": 207.0,
+        "directionalConsistency": 0.979,
+        "voicedRatio": 1.0,
+        "maxFrameChangeCents": 56.7
+      }
+    },
+    {
+      "kind": "down-glide",
+      "start": 16.050068027210884,
+      "end": 16.21968253968254,
+      "score": 0.6978436560825357,
+      "evidence": {
+        "pitchChangeCents": -198.4,
+        "directionalConsistency": 0.998,
+        "voicedRatio": 1.0,
+        "maxFrameChangeCents": 51.8
+      }
+    },
+    {
+      "kind": "up-glide",
+      "start": 16.169795918367345,
+      "end": 16.439183673469387,
+      "score": 0.6412652512767734,
+      "evidence": {
+        "pitchChangeCents": 172.2,
+        "directionalConsistency": 0.931,
+        "voicedRatio": 1.0,
+        "maxFrameChangeCents": 49.9
+      }
+    },
+    {
+      "kind": "down-glide",
+      "start": 20.200634920634922,
+      "end": 20.370249433106576,
+      "score": 0.7147159693913949,
+      "evidence": {
+        "pitchChangeCents": -292.4,
+        "directionalConsistency": 0.901,
+        "voicedRatio": 1.0,
+        "maxFrameChangeCents": 68.2
+      }
+    },
+    {
+      "kind": "up-glide",
+      "start": 20.440090702947845,
+      "end": 20.609705215419503,
+      "score": 0.8118809914505456,
+      "evidence": {
+        "pitchChangeCents": 350.7,
+        "directionalConsistency": 0.998,
+        "voicedRatio": 1.0,
+        "maxFrameChangeCents": 78.3
+      }
+    },
+    {
+      "kind": "down-glide",
+      "start": 20.599727891156462,
+      "end": 20.76934240362812,
+      "score": 0.8049906589880802,
+      "evidence": {
+        "pitchChangeCents": -343.6,
+        "directionalConsistency": 0.995,
+        "voicedRatio": 1.0,
+        "maxFrameChangeCents": 76.7
+      }
+    },
+    {
+      "kind": "down-glide",
+      "start": 21.71718820861678,
+      "end": 21.886802721088436,
+      "score": 0.692851118787015,
+      "evidence": {
+        "pitchChangeCents": -280.2,
+        "directionalConsistency": 0.878,
+        "voicedRatio": 1.0,
+        "maxFrameChangeCents": 67.4
+      }
+    },
+    {
+      "kind": "up-glide",
+      "start": 22.994285714285713,
+      "end": 23.16390022675737,
+      "score": 0.7004630191016559,
+      "evidence": {
+        "pitchChangeCents": 253.0,
+        "directionalConsistency": 0.929,
+        "voicedRatio": 1.0,
+        "maxFrameChangeCents": 47.6
+      }
+    },
+    {
+      "kind": "up-glide",
+      "start": 24.55074829931973,
+      "end": 24.720362811791382,
+      "score": 0.6666617928779499,
+      "evidence": {
+        "pitchChangeCents": 224.6,
+        "directionalConsistency": 0.906,
+        "voicedRatio": 1.0,
+        "maxFrameChangeCents": 44.2
+      }
+    },
+    {
+      "kind": "up-glide",
+      "start": 26.147120181405896,
+      "end": 26.31673469387755,
+      "score": 0.7421957594332466,
+      "evidence": {
+        "pitchChangeCents": 284.5,
+        "directionalConsistency": 0.961,
+        "voicedRatio": 1.0,
+        "maxFrameChangeCents": 44.7
+      }
+    },
+    {
+      "kind": "up-glide",
+      "start": 29.539410430839002,
+      "end": 29.70902494331066,
+      "score": 0.7510931717504381,
+      "evidence": {
+        "pitchChangeCents": 322.7,
+        "directionalConsistency": 0.926,
+        "voicedRatio": 1.0,
+        "maxFrameChangeCents": 84.8
+      }
+    },
+    {
+      "kind": "up-glide",
+      "start": 29.938503401360546,
+      "end": 30.207891156462583,
+      "score": 0.938355219577758,
+      "evidence": {
+        "pitchChangeCents": 519.2,
+        "directionalConsistency": 0.998,
+        "voicedRatio": 1.0,
+        "maxFrameChangeCents": 79.7
+      }
+    },
+    {
+      "kind": "down-glide",
+      "start": 30.17795918367347,
+      "end": 30.347573696145126,
+      "score": 0.7347385700106687,
+      "evidence": {
+        "pitchChangeCents": -312.7,
+        "directionalConsistency": 0.909,
+        "voicedRatio": 1.0,
+        "maxFrameChangeCents": 80.3
+      }
+    },
+    {
+      "kind": "down-glide",
+      "start": 33.21106575963719,
+      "end": 33.38068027210884,
+      "score": 0.74135435970721,
+      "evidence": {
+        "pitchChangeCents": -329.3,
+        "directionalConsistency": 0.899,
+        "voicedRatio": 1.0,
+        "maxFrameChangeCents": 72.6
+      }
+    },
+    {
+      "kind": "up-glide",
+      "start": 35.485895691609976,
+      "end": 35.65551020408163,
+      "score": 0.6163898877325156,
+      "evidence": {
+        "pitchChangeCents": 185.5,
+        "directionalConsistency": 0.868,
+        "voicedRatio": 1.0,
+        "maxFrameChangeCents": 34.2
+      }
+    },
+    {
+      "kind": "down-glide",
+      "start": 35.60562358276644,
+      "end": 35.87501133786848,
+      "score": 0.6623383554915764,
+      "evidence": {
+        "pitchChangeCents": -214.8,
+        "directionalConsistency": 0.911,
+        "voicedRatio": 1.0,
+        "maxFrameChangeCents": 24.5
+      }
+    },
+    {
+      "kind": "up-glide",
+      "start": 35.96480725623583,
+      "end": 36.13442176870748,
+      "score": 0.663279708479861,
+      "evidence": {
+        "pitchChangeCents": 164.2,
+        "directionalConsistency": 0.982,
+        "voicedRatio": 1.0,
+        "maxFrameChangeCents": 55.6
+      }
+    },
+    {
+      "kind": "down-glide",
+      "start": 36.1643537414966,
+      "end": 36.33396825396825,
+      "score": 0.6630762927712688,
+      "evidence": {
+        "pitchChangeCents": -195.2,
+        "directionalConsistency": 0.939,
+        "voicedRatio": 1.0,
+        "maxFrameChangeCents": 53.4
+      }
+    },
+    {
+      "kind": "down-glide",
+      "start": 37.20199546485261,
+      "end": 37.471383219954646,
+      "score": 0.7751721178181374,
+      "evidence": {
+        "pitchChangeCents": -309.7,
+        "directionalConsistency": 0.987,
+        "voicedRatio": 1.0,
+        "maxFrameChangeCents": 27.4
+      }
+    }
+  ]
+}

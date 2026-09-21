@@ -1,0 +1,218 @@
+[
+  {
+    "id": "demo-rhythm-0",
+    "mode": "rhythm",
+    "nickname": "听风的弦",
+    "score": 61200,
+    "accuracy": 98,
+    "demo": true,
+    "createdAt": "2026-09-01T00:00:00.000Z"
+  },
+  {
+    "id": "demo-rhythm-1",
+    "mode": "rhythm",
+    "nickname": "松间月",
+    "score": 56800,
+    "accuracy": 93,
+    "demo": true,
+    "createdAt": "2026-09-01T00:00:01.000Z"
+  },
+  {
+    "id": "demo-rhythm-2",
+    "mode": "rhythm",
+    "nickname": "小满",
+    "score": 50400,
+    "accuracy": 88,
+    "demo": true,
+    "createdAt": "2026-09-01T00:00:02.000Z"
+  },
+  {
+    "id": "demo-rhythm-3",
+    "mode": "rhythm",
+    "nickname": "林间回声",
+    "score": 45600,
+    "accuracy": 83,
+    "demo": true,
+    "createdAt": "2026-09-01T00:00:03.000Z"
+  },
+  {
+    "id": "demo-rhythm-4",
+    "mode": "rhythm",
+    "nickname": "一颗音符",
+    "score": 38700,
+    "accuracy": 78,
+    "demo": true,
+    "createdAt": "2026-09-01T00:00:04.000Z"
+  },
+  {
+    "id": "demo-rhythm-5",
+    "mode": "rhythm",
+    "nickname": "竹影",
+    "score": 32100,
+    "accuracy": 73,
+    "demo": true,
+    "createdAt": "2026-09-01T00:00:05.000Z"
+  },
+  {
+    "id": "demo-rhythm-6",
+    "mode": "rhythm",
+    "nickname": "江南听客",
+    "score": 25400,
+    "accuracy": 68,
+    "demo": true,
+    "createdAt": "2026-09-01T00:00:06.000Z"
+  },
+  {
+    "id": "demo-rhythm-7",
+    "mode": "rhythm",
+    "nickname": "弦上星光",
+    "score": 18600,
+    "accuracy": 63,
+    "demo": true,
+    "createdAt": "2026-09-01T00:00:07.000Z"
+  },
+  {
+    "id": "demo-listening-0",
+    "mode": "listening",
+    "nickname": "听风的弦",
+    "score": 3000,
+    "accuracy": 98,
+    "demo": true,
+    "createdAt": "2026-09-01T00:00:00.000Z"
+  },
+  {
+    "id": "demo-listening-1",
+    "mode": "listening",
+    "nickname": "松间月",
+    "score": 3000,
+    "accuracy": 93,
+    "demo": true,
+    "createdAt": "2026-09-01T00:00:01.000Z"
+  },
+  {
+    "id": "demo-listening-2",
+    "mode": "listening",
+    "nickname": "小满",
+    "score": 2800,
+    "accuracy": 88,
+    "demo": true,
+    "createdAt": "2026-09-01T00:00:02.000Z"
+  },
+  {
+    "id": "demo-listening-3",
+    "mode": "listening",
+    "nickname": "林间回声",
+    "score": 2600,
+    "accuracy": 83,
+    "demo": true,
+    "createdAt": "2026-09-01T00:00:03.000Z"
+  },
+  {
+    "id": "demo-listening-4",
+    "mode": "listening",
+    "nickname": "一颗音符",
+    "score": 2400,
+    "accuracy": 78,
+    "demo": true,
+    "createdAt": "2026-09-01T00:00:04.000Z"
+  },
+  {
+    "id": "demo-listening-5",
+    "mode": "listening",
+    "nickname": "竹影",
+    "score": 2200,
+    "accuracy": 73,
+    "demo": true,
+    "createdAt": "2026-09-01T00:00:05.000Z"
+  },
+  {
+    "id": "demo-listening-6",
+    "mode": "listening",
+    "nickname": "江南听客",
+    "score": 1800,
+    "accuracy": 68,
+    "demo": true,
+    "createdAt": "2026-09-01T00:00:06.000Z"
+  },
+  {
+    "id": "demo-listening-7",
+    "mode": "listening",
+    "nickname": "弦上星光",
+    "score": 1400,
+    "accuracy": 63,
+    "demo": true,
+    "createdAt": "2026-09-01T00:00:07.000Z"
+  },
+  {
+    "id": "demo-challenge-0",
+    "mode": "challenge",
+    "nickname": "小满",
+    "score": 128600,
+    "accuracy": 98,
+    "demo": true,
+    "createdAt": "2026-09-01T00:00:00.000Z"
+  },
+  {
+    "id": "demo-challenge-1",
+    "mode": "challenge",
+    "nickname": "林间回声",
+    "score": 117300,
+    "accuracy": 93,
+    "demo": true,
+    "createdAt": "2026-09-01T00:00:01.000Z"
+  },
+  {
+    "id": "demo-challenge-2",
+    "mode": "challenge",
+    "nickname": "一颗音符",
+    "score": 106800,
+    "accuracy": 88,
+    "demo": true,
+    "createdAt": "2026-09-01T00:00:02.000Z"
+  },
+  {
+    "id": "demo-challenge-3",
+    "mode": "challenge",
+    "nickname": "竹影",
+    "score": 94500,
+    "accuracy": 83,
+    "demo": true,
+    "createdAt": "2026-09-01T00:00:03.000Z"
+  },
+  {
+    "id": "demo-challenge-4",
+    "mode": "challenge",
+    "nickname": "江南听客",
+    "score": 83200,
+    "accuracy": 78,
+    "demo": true,
+    "createdAt": "2026-09-01T00:00:04.000Z"
+  },
+  {
+    "id": "demo-challenge-5",
+    "mode": "challenge",
+    "nickname": "弦上星光",
+    "score": 71900,
+    "accuracy": 73,
+    "demo": true,
+    "createdAt": "2026-09-01T00:00:05.000Z"
+  },
+  {
+    "id": "demo-challenge-6",
+    "mode": "challenge",
+    "nickname": "听风的弦",
+    "score": 58400,
+    "accuracy": 68,
+    "demo": true,
+    "createdAt": "2026-09-01T00:00:06.000Z"
+  },
+  {
+    "id": "demo-challenge-7",
+    "mode": "challenge",
+    "nickname": "松间月",
+    "score": 42700,
+    "accuracy": 63,
+    "demo": true,
+    "createdAt": "2026-09-01T00:00:07.000Z"
+  }
+]
