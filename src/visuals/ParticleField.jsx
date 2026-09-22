@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 
 // 首页首屏背景粒子场：位于 hero 内容图层之下，页面下半部分不出现粒子。
-// 全部粒子为柔边外发光小光点（无硬边圆球），亮度极低、明暗呼吸；
+// 全部粒子为柔边外发光小光点（无硬边圆球），低亮度、明暗呼吸；
 // 以矩形禁区主动绕开触碰弦模型：进入禁区的粒子被推出且完全不可见。
 export default function ParticleField({ holeRef }) {
   const canvasRef = useRef(null);
@@ -90,7 +90,7 @@ export default function ParticleField({ holeRef }) {
       const hp = hole();
       for (const p of particles) {
         const breath = 0.5 + 0.5 * Math.sin(t * 0.001 * p.bw + p.ph);
-        let a = 0.03 + 0.1 * breath; // 极低的存在感
+        let a = 0.06 + 0.2 * breath; // 亮度较上一版提高约一倍
         if (hp) {
           // 到禁区边界的距离：禁区内为 0（完全不可见），边界外 90px 内渐显
           const dx = Math.max(hp.x0 - p.x, 0, p.x - hp.x1);
