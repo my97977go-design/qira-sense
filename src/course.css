@@ -78,6 +78,10 @@
 .hero-particles {
   position: absolute;
   inset: 0;
+  /* canvas 是替换元素：不给 CSS 尺寸时布局宽度会取 canvas.width 属性值
+     （= 容器宽 × dpr），高分屏下会把页面右侧撑出一大片可滚动的空白 */
+  width: 100%;
+  height: 100%;
   z-index: 0;
   pointer-events: none;
 }
@@ -697,6 +701,18 @@
   letter-spacing: 2px;
   color: var(--tech);
   margin-top: 12px;
+}
+.knowledge-title h2 .kind-tag {
+  font-style: normal;
+  font-family: var(--sans, inherit);
+  margin-left: 12px;
+  padding: 3px 10px;
+  border: 1px solid color-mix(in srgb, var(--tech) 45%, transparent);
+  border-radius: 999px;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--tech);
+  vertical-align: middle;
 }
 .one-sentence {
   font-size: 18px;
@@ -2190,6 +2206,18 @@
     inset 0 0 28px #fff9dc;
   text-shadow: none;
   isolation: isolate;
+  animation: countdown-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+/* 金色倒数盘整体进场：从大到小缩放落定（保留居中位移） */
+@keyframes countdown-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.9);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
 }
 .countdown > small {
   font-size: 12px;
@@ -2230,12 +2258,17 @@
 }
 @keyframes count-in {
   from {
-    transform: scale(0.7);
-    filter: blur(5px);
+    transform: scale(2.6);
+    opacity: 0;
+    filter: blur(6px);
+  }
+  45% {
+    opacity: 1;
+    filter: blur(0);
   }
   to {
     transform: scale(1);
-    filter: blur(0);
+    opacity: 1;
   }
 }
 @keyframes count-halo {
@@ -2489,6 +2522,7 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .countdown,
   .countdown > strong,
   .countdown-halo,
   .technique-transition,

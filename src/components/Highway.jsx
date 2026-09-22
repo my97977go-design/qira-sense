@@ -1,4 +1,5 @@
 import { LANES } from "../game/chart.js";
+const LANE_W = 100 / LANES.length;
 export default function Highway({ game, previewNotes = [] }) {
   const preview =
     game.status === "ready" ||
@@ -11,14 +12,20 @@ export default function Highway({ game, previewNotes = [] }) {
       !game.results[n.id] && n.time - time < travel && n.time - time > -0.24,
   );
   const now = performance.now();
+  const yOf = (t) => 83 - ((t - time) / travel) * 83;
   return (
-    <div className="highway" aria-label="连续下落四轨，使用 D F J K 对应音轨">
+    <div
+      className="highway"
+      aria-label="连续下落八轨：D F J K L 点技法，1 2 3 长按技法"
+    >
       <div className="highway-light" />
       <div className="lane-grid">
         {LANES.map((lane, i) => (
           <div
             key={lane.key}
-            className={`lane ${now - game.padFlashes[i] < 140 ? "lit" : ""}`}
+            className={`lane ${lane.hold ? "hold-lane" : ""} ${
+              now - game.padFlashes[i] < 140 ? "lit" : ""
+            }`}
             style={{ "--lane": lane.color }}
           >
             <span className="lane-number">0{i + 1}</span>
@@ -37,14 +44,36 @@ export default function Highway({ game, previewNotes = [] }) {
       </div>
       <div className="note-field">
         {notes.map((note) => {
-          const y = 83 - ((note.time - time) / travel) * 83;
+          if (note.kind === "hold") {
+            // 长按光条：头（起点）在下、尾（终点）在上，长度即持续时间提示
+            const headY = Math.min(83, yOf(note.time));
+            const tailY = Math.max(-30, yOf(note.end));
+            const held = game.holding?.noteId === note.id;
+            return (
+              <div
+                key={note.id}
+                className={`hold-note ${held ? "held" : ""}`}
+                style={{
+                  "--lane": LANES[note.lane].color,
+                  left: `${(note.lane + 0.5) * LANE_W}%`,
+                  top: `${tailY}%`,
+                  height: `${Math.max(2, headY - tailY)}%`,
+                }}
+                data-note-id={note.id}
+              >
+                <span>{note.label}</span>
+                <i />
+              </div>
+            );
+          }
+          const y = yOf(note.time);
           return (
             <div
               key={note.id}
               className={`falling-note ${note.kind === "beat" ? "neutral-note" : ""}`}
               style={{
                 "--lane": LANES[note.lane].color,
-                left: `${note.lane * 25 + 2}%`,
+                left: `${(note.lane + 0.5) * LANE_W}%`,
                 top: `${y}%`,
               }}
               data-note-id={note.id}
@@ -66,7 +95,10 @@ export default function Highway({ game, previewNotes = [] }) {
             <div
               className="hit-burst"
               key={`${lane.key}-${game.padFlashes[index]}`}
-              style={{ left: `${index * 25 + 12.5}%`, "--lane": lane.color }}
+              style={{
+                left: `${(index + 0.5) * LANE_W}%`,
+                "--lane": lane.color,
+              }}
               aria-hidden="true"
             >
               <b />
@@ -87,21 +119,26 @@ export default function Highway({ game, previewNotes = [] }) {
           <button
             key={lane.key}
             style={{ "--lane": lane.color }}
-            className={now - game.padFlashes[index] < 140 ? "pressed" : ""}
-            aria-label={`${lane.key} ${lane.name}`}
+            className={`${now - game.padFlashes[index] < 140 ? "pressed" : ""} ${
+              lane.hold ? "hold-pad" : ""
+            } ${game.holding?.lane === index ? "holding" : ""}`}
+            aria-label={`${lane.key} ${lane.name}${lane.hold ? "（按住）" : ""}`}
             onPointerDown={(e) => {
               if (e.button === 0) {
                 e.preventDefault();
-                game.tap(index);
+                if (lane.hold) game.holdStart(index);
+                else game.tap(index);
               }
             }}
+            onPointerUp={() => lane.hold && game.holdEnd(index)}
+            onPointerLeave={() => lane.hold && game.holdEnd(index)}
             onClick={(e) => {
-              if (e.detail === 0) game.tap(index);
+              if (e.detail === 0 && !lane.hold) game.tap(index);
             }}
             disabled={game.status !== "playing"}
           >
             <kbd>{lane.key}</kbd>
-            <span>{lane.name}</span>
+            <span>{lane.hold ? `${lane.name} · 长按` : lane.name}</span>
           </button>
         ))}
       </div>

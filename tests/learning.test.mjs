@@ -41,7 +41,7 @@ test("pitch tracks known fundamentals and rejects silence and deterministic nois
 });
 test("library examples reference actual annotations; conceptual large glide never relabels recording", () => {
   const checked = validateLibrary(library);
-  assert.equal(checked.entries.length, 8);
+  assert.equal(checked.entries.length, 11);
   for (const t of checked.entries)
     for (const example of t.examples) {
       assert.equal(example.songId, song.id);

@@ -135,9 +135,20 @@ export default function CourseHome({ game, muted }) {
             return (
               <article
                 key={l.id}
-                className={`lesson-card ${done ? "completed" : "available"} ${
+                className={`lesson-card clickable ${done ? "completed" : "available"} ${
                   isFinal ? "final-entry" : ""
                 }`}
+                role="button"
+                tabIndex={0}
+                aria-label={`进入${l.title}`}
+                onClick={() => game.navigate(ENTRY_SCREEN[l.id])}
+                onKeyDown={(e) => {
+                  // 键盘用户在卡片上按回车/空格 = 点卡片进入
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    game.navigate(ENTRY_SCREEN[l.id]);
+                  }
+                }}
               >
                 <div className="lesson-top">
                   <span className="lesson-number">0{l.number}</span>
@@ -161,7 +172,8 @@ export default function CourseHome({ game, muted }) {
                   <small>{l.objective}</small>
                   <button
                     className="lesson-enter"
-                    onClick={() => game.navigate(ENTRY_SCREEN[l.id])}
+                    tabIndex={-1}
+                    aria-hidden="true"
                   >
                     {done ? "再次进入" : "进入"}
                     <ArrowRight size={17} />
@@ -171,7 +183,20 @@ export default function CourseHome({ game, muted }) {
             );
           })}
           {(course.secondary || []).map((s) => (
-            <article key={s.id} className="lesson-card available egg-entry">
+            <article
+              key={s.id}
+              className="lesson-card clickable available egg-entry"
+              role="button"
+              tabIndex={0}
+              aria-label={`进入${s.title}`}
+              onClick={() => game.navigate(s.id)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  game.navigate(s.id);
+                }
+              }}
+            >
               <div className="lesson-top">
                 <span className="lesson-number egg-mark" aria-hidden="true">
                   ✦
@@ -183,10 +208,7 @@ export default function CourseHome({ game, muted }) {
               <p>{s.subtitle}</p>
               <div className="lesson-bottom">
                 <small>主线之外的隐藏舞台，光点随乐句坠落。</small>
-                <button
-                  className="lesson-enter"
-                  onClick={() => game.navigate(s.id)}
-                >
+                <button className="lesson-enter" tabIndex={-1} aria-hidden="true">
                   点亮舞台
                   <ArrowRight size={17} />
                 </button>

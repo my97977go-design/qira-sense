@@ -3,11 +3,14 @@ export const ANIMATIONS = [
   "up-glide",
   "large-up-glide",
   "down-glide",
+  "large-down-glide",
   "vibrato",
   "slide-vibrato",
   "dayin",
   "return-glide",
   "dianbow",
+  "paogong",
+  "dianzhi-glide",
 ];
 export function validateLibrary(value) {
   if (

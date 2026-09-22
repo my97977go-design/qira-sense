@@ -3,10 +3,15 @@ import { transport } from "../audio/transport.js";
 import {
   makeChart,
   closestNote,
+  closestHoldNote,
   judgement,
+  judgementHold,
   summarize,
   HIT_WINDOW,
+  LANES,
 } from "./chart.js";
+import { loadCalibration } from "./beatCalibration.js";
+import { COUNT_IN_SECONDS, detectLeadSilence } from "../audio/leadIn.js";
 
 let beatPromise;
 function detectBeat(buffer) {
@@ -53,11 +58,17 @@ const initial = () => ({
   screen: "home",
   status: "ready",
   time: 0,
+  countdown: 0,
+  countdownTotal: 0,
+  tempoMarks: [],
+  lead: 0,
   notes: [],
   results: {},
   combo: 0,
+  countIn: 0,
   feedback: null,
-  padFlashes: [0, 0, 0, 0],
+  padFlashes: LANES.map(() => 0),
+  holding: null,
   summary: null,
   error: "",
 });
@@ -67,11 +78,20 @@ export default function useSession(song) {
     [view, setView] = useState(session.current);
   const [beat, setBeat] = useState(null),
     [manualBpm, setManualBpm] = useState(null),
+    [humanBeat, setHumanBeat] = useState(() => loadCalibration()),
     [calibration, setCalibration] = useState(0),
     [speed, setSpeed] = useState(1),
     [metronome, setMetronome] = useState(false);
   const options = useRef({});
-  options.current = { song, beat, manualBpm, calibration, speed, metronome };
+  options.current = {
+    song,
+    beat,
+    manualBpm,
+    humanBeat,
+    calibration,
+    speed,
+    metronome,
+  };
   const publish = () => setView({ ...session.current });
   const resolve = (note, result, time) => {
     const s = session.current;
@@ -101,8 +121,17 @@ export default function useSession(song) {
     try {
       await transport.load(song.audio);
       if (request !== token.current) return;
+      // 节拍优先级：手动 BPM > 教师人工打拍标定 > beat.worker 自动估算
+      const human = loadCalibration();
+      setHumanBeat(human);
+      options.current.humanBeat = human;
       let analysis = options.current.beat;
-      if (screen !== "map" && !analysis && !options.current.manualBpm) {
+      if (
+        screen !== "map" &&
+        !analysis &&
+        !options.current.manualBpm &&
+        !human
+      ) {
         session.current.status = "analyzing";
         publish();
         analysis = await detectBeat(transport.buffer);
@@ -111,18 +140,55 @@ export default function useSession(song) {
         options.current.beat = analysis;
       }
       if (request !== token.current) return;
+      const base = human || analysis || {};
       const effective = {
-        ...(analysis || {}),
-        bpm: options.current.manualBpm || analysis?.bpm,
-        offset: analysis?.offset || 0,
+        ...base,
+        bpm: options.current.manualBpm || base.bpm,
+        offset: base.offset || 0,
       };
       session.current.notes =
         screen === "map" ? [] : makeChart(song, effective, screen);
-      if (screen !== "map" && !session.current.notes.length)
-        throw new Error("无法生成节拍，请设置 BPM 后重试。");
-      session.current.status = "playing";
-      session.current.time = screen === "map" ? 0 : -2.5;
-      transport.play(0, screen === "map" ? 0 : 2.5);
+      if (screen !== "map") {
+        // 截掉录音头部空白：预备拍走完时，音乐第一个声音正好进场
+        const lead = detectLeadSilence(transport.buffer);
+        session.current.lead = lead;
+        session.current.notes = session.current.notes.filter(
+          (n) => n.time >= lead - 0.02,
+        );
+        if (!session.current.notes.length)
+          throw new Error("无法生成节拍，请设置 BPM 后重试。");
+      }
+      // 速度记号：教师标定打拍记录的渐快/渐慢段落 + 谱面文字标注（渐快/催板等）
+      const marks = [];
+      for (const seg of human?.segments || [])
+        if (seg?.trend && Number.isFinite(seg.start))
+          marks.push({ start: seg.start, end: seg.end, trend: seg.trend });
+      for (const a of song.annotations || [])
+        if (a.enabled !== false) {
+          const text = `${a.label || ""} ${a.description || ""}`;
+          const trend = /渐快|催板|accel/i.test(text)
+            ? "accel"
+            : /渐慢|撤板|慢来板|ritard/i.test(text)
+              ? "ritard"
+              : null;
+          if (trend) marks.push({ start: a.start, end: a.end, trend });
+        }
+      session.current.tempoMarks = marks.sort((x, y) => x.start - y.start);
+      if (screen === "map") {
+        session.current.status = "playing";
+        session.current.time = 0;
+        transport.play(0, 0);
+      } else {
+        // 加载完成后先进入“armed”确认态： audio 就绪但不动，
+        // 用户点“准备好了”才真正起倒数，避免太突然。
+        // 跟拍游戏：预备拍 = 按当前拍速走满 8 拍（8-7-…-1），与模拟点击同拍；
+        // 其余游戏保留固定 3 秒倒数。
+        session.current.countIn =
+          screen === "rhythm"
+            ? Math.min(16, Math.max(0.8, (60 / (effective.bpm || 120)) * 8))
+            : COUNT_IN_SECONDS;
+        session.current.status = "armed";
+      }
       publish();
     } catch (error) {
       if (request === token.current) {
@@ -131,6 +197,17 @@ export default function useSession(song) {
         publish();
       }
     }
+  };
+  // 确认态 → 正式开场：点“准备好了”才起预备倒数、排程音频进场
+  const confirmStart = () => {
+    const s = session.current;
+    if (s.status !== "armed" || !(s.countIn > 0)) return;
+    s.status = "playing";
+    s.time = s.lead - s.countIn;
+    s.countdown = s.countIn;
+    s.countdownTotal = s.countIn;
+    transport.play(s.lead, s.countIn);
+    publish();
   };
   const togglePause = async () => {
     const s = session.current;
@@ -185,7 +262,8 @@ export default function useSession(song) {
     if (
       s.status !== "playing" ||
       !["rhythm", "challenge"].includes(s.screen) ||
-      transport.time < 0
+      transport.timeUntilStart > 0 ||
+      LANES[lane]?.hold
     )
       return;
     const time = transport.time - options.current.calibration / 1000;
@@ -203,6 +281,43 @@ export default function useSession(song) {
     }
     publish();
   };
+  // 长按：按下记住光条，松手按按住时长结算（识别正确 + 时长大差不差）。
+  const holdStart = (lane) => {
+    const s = session.current;
+    if (
+      s.status !== "playing" ||
+      s.screen !== "challenge" ||
+      transport.timeUntilStart > 0 ||
+      !LANES[lane]?.hold ||
+      s.holding
+    )
+      return;
+    const time = transport.time - options.current.calibration / 1000;
+    s.padFlashes[lane] = performance.now();
+    const note = closestHoldNote(s.notes, s.results, time, lane);
+    if (note) s.holding = { noteId: note.id, lane, start: time };
+    else {
+      s.combo = 0;
+      s.feedback = {
+        grade: "empty",
+        label: "这里没有长按光条",
+        born: performance.now(),
+        serial: `empty-${performance.now()}`,
+      };
+    }
+    publish();
+  };
+  const holdEnd = (lane) => {
+    const s = session.current;
+    if (!s.holding || s.holding.lane !== lane) return;
+    const time = transport.time - options.current.calibration / 1000;
+    const hold = time - s.holding.start;
+    const note = s.notes.find((n) => n.id === s.holding.noteId);
+    s.holding = null;
+    if (note && !s.results[note.id])
+      resolve(note, judgementHold(hold, note.end - note.time), time);
+    publish();
+  };
   useEffect(() => {
     let raf,
       last = 0,
@@ -217,6 +332,7 @@ export default function useSession(song) {
       }
       if (s.status === "playing") {
         s.time = transport.time;
+        s.countdown = transport.timeUntilStart;
         if (s.screen !== "map") {
           const judgedTime = s.time - options.current.calibration / 1000;
           for (const note of s.notes) {
@@ -250,6 +366,14 @@ export default function useSession(song) {
         if (transport.phase === "ended") {
           if (s.screen === "map") s.status = "finished";
           else {
+            // 收尾时仍按住的光条：按已按住时长结算，其余未结算判 miss
+            if (s.holding) {
+              const note = s.notes.find((n) => n.id === s.holding.noteId);
+              const hold = s.time - s.holding.start;
+              s.holding = null;
+              if (note && !s.results[note.id])
+                resolve(note, judgementHold(hold, note.end - note.time), s.time);
+            }
             for (const note of s.notes)
               if (!s.results[note.id])
                 resolve(note, judgement(Infinity), s.time);
@@ -296,12 +420,15 @@ export default function useSession(song) {
   return {
     ...view,
     session,
-    beat: beat
-      ? { ...beat, bpm: manualBpm || beat.bpm }
-      : manualBpm
-        ? { bpm: manualBpm, offset: 0, method: "manual" }
-        : null,
+    beat: manualBpm
+      ? {
+          bpm: manualBpm,
+          offset: humanBeat?.offset ?? beat?.offset ?? 0,
+          method: "manual",
+        }
+      : humanBeat || beat || null,
     detectedBeat: beat,
+    humanBeat,
     manualBpm,
     setManualBpm,
     calibration,
@@ -312,9 +439,12 @@ export default function useSession(song) {
     setMetronome,
     navigate,
     start,
+    confirm: confirmStart,
     togglePause,
     seek,
     tap,
+    holdStart,
+    holdEnd,
     finishLesson,
   };
 }

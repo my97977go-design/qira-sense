@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { Plus, Download, Upload, Edit3, Play, Save, X } from "lucide-react";
 import { useKnowledge } from "../knowledge/KnowledgeContext.jsx";
 import { ANIMATIONS, validateLibrary } from "../knowledge/store.js";
+import { TECHNIQUE_KIND } from "../learning/learningConfig.js";
 import TechniqueRibbon from "../visuals/TechniqueRibbon.jsx";
 const fields = [
   ["name", "技法名称"],
@@ -160,6 +161,7 @@ export default function TechniqueLibrary({ song, onListen, initialTeacher = fals
               <span style={{ background: t.color }} />
               <b>{t.name}</b>
               <small>
+                {(TECHNIQUE_KIND[t.id] || t.input) === "hold" ? "长按" : "点"} ·{" "}
                 {t.examples.some(
                   (e) =>
                     e.songId === song.id &&
@@ -292,7 +294,14 @@ export default function TechniqueLibrary({ song, onListen, initialTeacher = fals
             <div className="knowledge-title">
               <div>
                 <span>技法与审美理解</span>
-                <h2>{entry.name}</h2>
+                <h2>
+                  {entry.name}
+                  <em className="kind-tag">
+                    {(TECHNIQUE_KIND[entry.id] || entry.input) === "hold"
+                      ? "持续 · 长按"
+                      : "瞬时 · 点"}
+                  </em>
+                </h2>
               </div>
               {teacher && (
                 <button

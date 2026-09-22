@@ -18,7 +18,7 @@ export default function Challenge({ game, song }) {
         <div>
           <Eyebrow>隐藏彩蛋 · 光弦坠落</Eyebrow>
           <h1>与光同行，在演奏中理解技法</h1>
-          <p>音符到达光线时，按下对应键。音乐不停，连击不断。</p>
+          <p>点技法到线即点；长按技法按住光条，时长大差不差即可。</p>
         </div>
         <Score game={game} />
       </div>
@@ -39,7 +39,7 @@ export default function Challenge({ game, song }) {
               <b>{game.notes.length || preview.length}</b> 次触碰
             </span>
             <span>
-              <b>04</b> 条音轨
+              <b>07</b> 条音轨
             </span>
           </div>
           <div className="combo-box">
@@ -65,6 +65,12 @@ export default function Challenge({ game, song }) {
           </label>
         </aside>
         <div className="highway-wrap">
+          {game.countdown > 0 && (
+            <div className="count-in" aria-live="polite">
+              <b key={Math.ceil(game.countdown)}>{Math.ceil(game.countdown)}</b>
+              <small>第一个声音随节拍进场</small>
+            </div>
+          )}
           <Highway game={game} previewNotes={preview} />
           <Feedback game={game} />
           {game.status === "ready" && (
@@ -72,8 +78,9 @@ export default function Challenge({ game, song }) {
               <span className="small-label">连续演奏 · 技法与声音对应</span>
               <h2>完成这段技法挑战</h2>
               <p>
-                跟随四轨下落音符
-                <br />按 D / F / J / K，或直接点按音轨。
+                点技法按 D / F / J / K / L，
+                <br />
+                长按光条按住 1 / 2 / 3，或直接点按音轨。
               </p>
               <div className="key-demo">
                 {LANES.map((l) => (
@@ -104,21 +111,32 @@ export default function Challenge({ game, song }) {
             <TechniqueRibbon mini technique={tech?.id || "vibrato"} />
             <p>
               {active
-                ? active.dynamics === "crescendo"
-                  ? "揉弦 · 渐强"
-                  : active.dynamics === "diminuendo"
-                    ? "揉弦 · 渐弱"
-                    : active.repeatCount > 1
-                      ? "连续四次，接住每一下"
-                      : tech.description
+                ? LANES.find((l) => l.ids.includes(active.technique))?.hold
+                  ? `持续状态 · 按住 ${
+                      LANES.find((l) => l.ids.includes(active.technique)).key
+                    } 号光条，约 ${(active.end - active.start).toFixed(1)} 秒`
+                  : active.dynamics === "crescendo"
+                    ? "渐强推进，接住每一下"
+                    : active.dynamics === "diminuendo"
+                      ? "渐弱收束，接住每一下"
+                      : active.repeatCount > 1
+                        ? `连续 ${active.repeatCount} 次，接住每一下`
+                        : tech.description
                 : "浅色短音符是衔接节拍，按对应音轨即可。"}
             </p>
           </div>
           <div className="lane-guide">
             {LANES.map((l) => (
-              <div key={l.key} style={{ "--lane": l.color }}>
+              <div
+                key={l.key}
+                className={l.hold ? "hold" : ""}
+                style={{ "--lane": l.color }}
+              >
                 <kbd>{l.key}</kbd>
-                <span>{l.name}</span>
+                <span>
+                  {l.name}
+                  {l.hold && <i>长按</i>}
+                </span>
               </div>
             ))}
           </div>

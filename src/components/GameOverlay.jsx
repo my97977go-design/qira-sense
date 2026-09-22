@@ -1,7 +1,22 @@
+import { useLayoutEffect, useRef } from "react";
 import { Play, RotateCcw, Headphones, ArrowUpRight } from "lucide-react";
 import CourseResult from "./CourseResult.jsx";
 import { Eyebrow } from "./Elements.jsx";
 export default function GameOverlay({ game }) {
+  const countdownRef = useRef(null);
+  // 金色倒数盘与"按"圆盘圆心对齐：逐帧实测圆盘中心（倒数每拍都重渲染，
+  // 顺带覆盖滚动/布局变化；非跟拍屏找不到 pulse-disc 则保持默认位置）。
+  useLayoutEffect(() => {
+    const el = countdownRef.current;
+    if (!el) return;
+    const page = el.parentElement,
+      disc = page && page.querySelector(".pulse-disc");
+    if (!disc) return;
+    const pr = page.getBoundingClientRect(),
+      dr = disc.getBoundingClientRect();
+    el.style.left = `${dr.left - pr.left + dr.width / 2}px`;
+    el.style.top = `${dr.top - pr.top + dr.height / 2}px`;
+  });
   const busy = ["loading", "analyzing"].includes(game.status);
   if (busy)
     return (
@@ -46,23 +61,80 @@ export default function GameOverlay({ game }) {
         </button>
       </div>
     );
-  if (game.status === "playing" && game.time < 0)
+  if (game.status === "armed")
+    // 音频就绪后的确认一步：不点“开始”就永远不进倒数，给足心理准备
+    return (
+      <div className="game-overlay arm-overlay">
+        <Eyebrow>原声已就绪</Eyebrow>
+        <h2>跟着节奏按！</h2>
+        <p>
+          {game.screen === "rhythm"
+            ? "准备好了吗？点一下开始 —— 倒数八拍走完，音乐正好进场"
+            : "准备好了吗？点一下开始，倒数之后音符就会靠近"}
+        </p>
+        <button className="arm-button" onClick={game.confirm}>
+          准备好了，开始！
+        </button>
+      </div>
+    );
+  if (
+    game.status === "playing" &&
+    (game.screen === "rhythm" ? game.countdown > 0 : game.time < 0)
+  ) {
+    // 跟拍游戏：预备拍按当前 BPM 走满 8 拍（8-7-…-1），与逐点闪烁、模拟点击同拍；
+    // 其余游戏保留按秒倒数。
+    const prep = (game.countdownTotal || 0) / 8,
+      prepBeat =
+        game.screen === "rhythm" && prep > 0
+          ? Math.min(
+              7,
+              Math.max(
+                0,
+                Math.floor((game.countdownTotal - game.countdown) / prep),
+              ),
+            )
+          : -1,
+      num = prepBeat >= 0 ? 8 - prepBeat : Math.ceil(-game.time);
     return (
       <div
+        ref={countdownRef}
         className="countdown"
         role="status"
-        aria-label={`准备开始 ${Math.ceil(-game.time)}`}
+        aria-label={`准备开始 ${num}`}
       >
-        <i className="countdown-halo" />
+        <i
+          className="countdown-halo"
+          style={prepBeat >= 0 ? { animationDuration: `${prep * 2}s` } : undefined}
+        />
         <small>准备开始</small>
-        <strong key={Math.ceil(-game.time)}>{Math.ceil(-game.time)}</strong>
-        <span>
-          {game.screen === "rhythm"
-            ? "两拍一次 · 跟随音乐"
-            : "手指就位，音符正在靠近"}
+        <strong
+          key={num}
+          style={
+            prepBeat >= 0
+              ? { animationDuration: `${Math.min(prep, 0.5)}s` }
+              : undefined
+          }
+        >
+          {num}
+        </strong>
+        <span
+          key={prepBeat >= 0 ? `call-${num}` : "hint"}
+          className={prepBeat >= 0 ? "countdown-call" : undefined}
+          style={
+            prepBeat >= 0
+              ? { animationDuration: `${Math.min(prep * 0.96, 1)}s` }
+              : undefined
+          }
+        >
+          {prepBeat >= 0
+            ? "按我！按我！"
+            : game.screen === "rhythm"
+              ? "一拍一次 · 跟随音乐"
+              : "手指就位，音符正在靠近"}
         </span>
       </div>
     );
+  }
   if (game.status === "finished" && game.summary) {
     const s = game.summary;
     return (

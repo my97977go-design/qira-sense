@@ -7,6 +7,7 @@ import {
   AudioLines,
 } from "lucide-react";
 import { activeAt } from "../game/chart.js";
+import { kindOf } from "../learning/learningConfig.js";
 import { Eyebrow, clock, running } from "./Elements.jsx";
 import TechniqueRibbon from "../visuals/TechniqueRibbon.jsx";
 import PitchCurve from "./PitchCurve.jsx";
@@ -85,6 +86,11 @@ export default function SoundMap({ game, song, request }) {
           <div className="technique-tags">
             {current ? (
               <>
+                <span className={kindOf(current.technique) === "hold" ? "hold" : ""}>
+                  {kindOf(current.technique) === "hold"
+                    ? "持续 · 长按状态"
+                    : "瞬时 · 点状动作"}
+                </span>
                 <span>
                   {current.start.toFixed(0).padStart(2, "0")}—
                   {current.end.toFixed(0).padStart(2, "0")} 秒
@@ -103,7 +109,11 @@ export default function SoundMap({ game, song, request }) {
             )}
           </div>
           <button
-            className="round-play"
+            className={`round-play${
+              game.status === "ready" || game.status === "finished"
+                ? " round-play-invite"
+                : ""
+            }`}
             onClick={() =>
               game.status === "ready" || game.status === "finished"
                 ? game.start("map")
@@ -113,11 +123,13 @@ export default function SoundMap({ game, song, request }) {
               game.status === "playing" ? "暂停声音地图" : "播放声音地图"
             }
           >
-            {game.status === "playing" ? (
-              <Pause size={19} />
-            ) : (
-              <Play size={19} fill="currentColor" />
-            )}
+            <i className="round-play-disc" aria-hidden="true">
+              {game.status === "playing" ? (
+                <Pause size={22} />
+              ) : (
+                <Play size={22} fill="currentColor" />
+              )}
+            </i>
             <span>
               {game.status === "playing" ? "正在聆听" : "聆听这段音乐"}
             </span>
@@ -243,7 +255,9 @@ export default function SoundMap({ game, song, request }) {
                 key={a.id}
                 title={`${a.start}–${a.end} 秒 · ${a.label}`}
                 aria-label={`${a.start} 至 ${a.end} 秒 ${a.label}`}
-                className={active?.id === a.id ? "active" : ""}
+                className={`${active?.id === a.id ? "active" : ""} ${
+                  kindOf(a.technique) === "hold" ? "hold" : ""
+                }`}
                 onClick={() => select(a)}
                 style={{
                   left: `${(a.start / song.duration) * 100}%`,

@@ -6,9 +6,12 @@ import { analyzeBeat, beatGrid } from "../src/audio/beat.js";
 import {
   makeChart,
   closestNote,
+  closestHoldNote,
   judgement,
+  judgementHold,
   summarize,
   activeAt,
+  LANES,
 } from "../src/game/chart.js";
 import { validateSong } from "../src/game/data.js";
 import { AudioTransport } from "../src/audio/transport.js";
@@ -77,8 +80,14 @@ test("three groups of four preserve all repetitions with honest legacy subdivisi
     );
   }
   assert.equal(chart.filter((n) => n.technique === "dayin").length, 1);
-  assert.equal(chart.filter((n) => n.technique === "return-glide").length, 1);
-  assert.equal(chart.filter((n) => n.technique === "slide-vibrato").length, 4);
+  // 回滑音已转正为点状技法：谱面中出现专属 L 轨音符
+  const glideNotes = chart.filter((n) => n.technique === "return-glide");
+  assert.ok(glideNotes.length > 0);
+  assert.ok(glideNotes.every((n) => LANES[n.lane].key === "L"));
+  // 持续性技法整段一条长按光条
+  const holds = chart.filter((n) => n.technique === "slide-vibrato");
+  assert.equal(holds.length, 4);
+  assert.ok(holds.every((n) => n.kind === "hold" && n.end > n.time));
 });
 test("continuous chart has no answer windows or gaps caused by feedback", () => {
   const chart = makeChart(song, beat);
@@ -87,24 +96,25 @@ test("continuous chart has no answer windows or gaps caused by feedback", () => 
   for (let i = 0; i < chart.length; i++) {
     const n = chart[i];
     assert.ok(
-      n.time >= 0 && n.time < song.duration && n.lane >= 0 && n.lane < 4,
+      n.time >= 0 && n.time < song.duration && n.lane >= 0 && n.lane < 8,
     );
     if (i) assert.ok(n.time - chart[i - 1].time <= 0.76);
-    if (n.kind === "technique") {
+    if (n.kind === "technique" || n.kind === "hold") {
       const a = song.annotations.find((a) => a.id === n.annotationId);
       assert.ok(n.time >= a.start && n.time < a.end);
+      if (n.kind === "hold") assert.ok(n.end > n.time && n.end <= a.end + 1e-6);
     } else assert.equal(n.technique, undefined);
   }
   assert.equal(activeAt(song, 6).dynamics, "diminuendo");
   assert.equal(activeAt(song, 20), undefined);
 });
-test("rhythm means one target per two estimated beats, including manual BPM overrides", () => {
+test("rhythm means one target per estimated beat, including manual BPM overrides", () => {
   for (const bpm of [60, 82.75, 165.5, 240]) {
     const grid = makeChart(song, { bpm, offset: 0.08 }, "rhythm");
     assert.ok(grid.length > 10);
     for (let i = 1; i < grid.length; i++)
       assert.ok(
-        Math.abs(grid[i].time - grid[i - 1].time - 120 / bpm) < 0.000002,
+        Math.abs(grid[i].time - grid[i - 1].time - 60 / bpm) < 0.000002,
       );
   }
   assert.deepEqual(beatGrid({ bpm: NaN }, 40), []);
@@ -123,6 +133,28 @@ test("timing uses the correct lane, finds the nearest unresolved note, and never
   for (const d of [-0.07, 0, 0.07]) assert.equal(judgement(d).grade, "perfect");
   assert.equal(judgement(0.18).grade, "good");
   assert.equal(judgement(0.181).grade, "miss");
+});
+test("hold judgement: half-length hits, near-full perfect, early release misses", () => {
+  assert.equal(judgementHold(1.0, 2.0).grade, "good"); // 正好半长
+  assert.equal(judgementHold(1.7, 2.0).grade, "perfect"); // 85%
+  assert.equal(judgementHold(2.6, 2.0).grade, "perfect"); // 超按 130% 不罚
+  assert.equal(judgementHold(3.4, 2.0).grade, "good"); // 超按过多仍算识别成功
+  assert.equal(judgementHold(0.9, 2.0).grade, "miss"); // 过早松手
+  assert.equal(judgementHold(0, 2.0).grade, "miss");
+});
+test("hold lanes own hold notes; tap lanes never match them", () => {
+  const notes = makeChart(song, beat);
+  const hold = notes.find((n) => n.kind === "hold");
+  assert.ok(hold);
+  assert.equal(LANES[hold.lane].hold, true);
+  assert.equal(LANES.filter((l) => l.hold).length, 3);
+  assert.equal(LANES.filter((l) => !l.hold).length, 5);
+  assert.equal(closestNote(notes, {}, hold.time, hold.lane), null);
+  assert.equal(closestHoldNote(notes, {}, hold.time, hold.lane).id, hold.id);
+  assert.equal(closestHoldNote(notes, {}, hold.time, 0), null);
+  // 点技法音符不会落到长按匹配里
+  const tapNote = notes.find((n) => n.kind === "technique");
+  assert.equal(closestHoldNote(notes, {}, tapNote.time, tapNote.lane), null);
 });
 test("misses resolve once and later successful notes build a fresh combo", () => {
   const results = {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import {
   Play,
   Pause,
@@ -10,17 +10,23 @@ import {
   Check,
   Ban,
   AlertTriangle,
+  RotateCcw,
 } from "lucide-react";
 import { transport } from "../audio/transport.js";
+import { COUNT_IN_SECONDS, detectLeadSilence } from "../audio/leadIn.js";
 import { validateSong, saveSong } from "../game/data.js";
-import { FINAL_TECHNIQUES } from "../learning/learningConfig.js";
+import {
+  FINAL_TECHNIQUES,
+  TAP_TECHNIQUES,
+  kindOf,
+} from "../learning/learningConfig.js";
 import { useKnowledge } from "../knowledge/KnowledgeContext.jsx";
 import { Eyebrow, clock } from "./Elements.jsx";
 import PulseLine from "./PulseLine.jsx";
 import baseFeatures from "../data/features.json";
 
 // 实时打点标注台：整曲播放（可 0.1×/0.5×/0.75× 慢速精标），
-// 听到技法的瞬间点按钮或按 1—6 键打点，同一秒可连续多次。
+// 点技法（1—6）听到瞬间点按钮或按键打点；长按技法（7—9）按住记起点、松手记终点。
 // 打点默认 human-confirmed / needs-review；逐条精修锚点后
 // 「确认（毫秒级）」才成为快速听辨测试的正式答案。
 const RATES = [0.1, 0.5, 0.75, 1];
@@ -61,6 +67,7 @@ export default function AnnotationStudio({ song, onSaved }) {
   const [candidateStatus, setCandidateStatus] = useState("loading");
   const [showCandidates, setShowCandidates] = useState(false);
   const [time, setTime] = useState(0);
+  const [countdown, setCountdown] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [rate, setRateState] = useState(1);
   const [cursor, setCursor] = useState(0);
@@ -140,6 +147,7 @@ export default function AnnotationStudio({ song, onSaved }) {
     const tick = () => {
       setTime(transport.time);
       setPlaying(transport.phase === "playing");
+      setCountdown(transport.timeUntilStart);
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
@@ -199,7 +207,10 @@ export default function AnnotationStudio({ song, onSaved }) {
         await transport.resume();
       } else {
         await transport.load(song.audio);
-        transport.play(cursor >= duration ? 0 : cursor, 0, duration);
+        // 3-2-1 倒计时（0 不显示）：头部空白计入倒数，第一个声音正好落在 0
+        const lead = detectLeadSilence(transport.buffer);
+        const at = cursor <= lead + 0.05 ? lead : cursor;
+        transport.play(at, COUNT_IN_SECONDS, duration);
       }
     } catch (e) {
       setNotice(`播放失败：${e.message || "录音加载失败"}`);
@@ -209,6 +220,17 @@ export default function AnnotationStudio({ song, onSaved }) {
     setRateState(r);
     transport.setRate(r);
   };
+  // 从头播放：回到录音开头，带 3-2-1 倒数重新起奏。
+  const playFromStart = async () => {
+    try {
+      await transport.load(song.audio);
+      const lead = detectLeadSilence(transport.buffer);
+      setCursor(lead);
+      transport.play(lead, COUNT_IN_SECONDS, duration);
+    } catch (e) {
+      setNotice(`从头播放失败：${e.message || "录音加载失败"}`);
+    }
+  };
   const seekTo = (t) => {
     const c = round3(Math.min(duration, Math.max(0, t)));
     setCursor(c);
@@ -217,7 +239,7 @@ export default function AnnotationStudio({ song, onSaved }) {
 
   // —— 打点：播放中记录 {time, technique}，同一秒可多次 ——
   const tap = (technique) => {
-    if (transport.phase !== "playing") return;
+    if (transport.phase !== "playing" || transport.timeUntilStart > 0) return;
     const t = round3(transport.time);
     const ev = {
       id: newId(),
@@ -232,8 +254,58 @@ export default function AnnotationStudio({ song, onSaved }) {
     setFlash({ key: ev.id, technique, time: t });
   };
 
-  // —— 键盘：1—6 打点，空格播放/暂停，Ctrl+Z/Y 撤销 ——
+  // —— 长按录入：按住记起点，松手记终点，形成 start–end 区间事件 ——
+  const pendingHold = useRef(null);
+  const beginHold = (technique) => {
+    if (
+      transport.phase !== "playing" ||
+      transport.timeUntilStart > 0 ||
+      pendingHold.current
+    )
+      return;
+    const start = round3(transport.time);
+    pendingHold.current = { technique, start };
+    setFlash({ key: `hold-${start}`, technique, time: start, holding: true });
+  };
+  const endHold = () => {
+    const p = pendingHold.current;
+    if (!p) return;
+    pendingHold.current = null;
+    const start = p.start,
+      end = Math.max(start + 0.1, round3(transport.time));
+    const ev = {
+      id: newId(),
+      annotationId: null,
+      technique: p.technique,
+      anchor: start,
+      start,
+      end,
+      timingPrecision: "human-confirmed",
+      reviewStatus: "needs-review",
+      label: "",
+    };
+    apply([...eventsRef.current, ev]);
+    setFlash({ key: ev.id, technique: p.technique, time: start, span: end - start });
+  };
+
+  // —— 键盘：1—9 打点/长按，空格播放/暂停，Ctrl+Z/Y 撤销 ——
   useEffect(() => {
+    const codes = [
+      "Digit1",
+      "Digit2",
+      "Digit3",
+      "Digit4",
+      "Digit5",
+      "Digit6",
+      "Digit7",
+      "Digit8",
+      "Digit9",
+    ];
+    const indexOf = (code) => {
+      let i = codes.indexOf(code);
+      if (i < 0) i = codes.indexOf(code.replace("Digit", "Numpad"));
+      return i;
+    };
     const key = (e) => {
       if (/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
       if (e.ctrlKey || e.altKey || e.metaKey) {
@@ -246,12 +318,12 @@ export default function AnnotationStudio({ song, onSaved }) {
         }
         return;
       }
-      const codes = ["Digit1", "Digit2", "Digit3", "Digit4", "Digit5", "Digit6"];
-      let i = codes.indexOf(e.code);
-      if (i < 0) i = codes.indexOf(e.code.replace("Digit", "Numpad"));
+      const i = indexOf(e.code);
       if (i >= 0 && FINAL_TECHNIQUES[i]) {
         e.preventDefault();
-        if (!e.repeat) tap(FINAL_TECHNIQUES[i]);
+        if (kindOf(FINAL_TECHNIQUES[i]) === "hold") {
+          if (!e.repeat) beginHold(FINAL_TECHNIQUES[i]);
+        } else if (!e.repeat) tap(FINAL_TECHNIQUES[i]);
         return;
       }
       if (e.code === "Space") {
@@ -259,8 +331,17 @@ export default function AnnotationStudio({ song, onSaved }) {
         if (!e.repeat) togglePlay();
       }
     };
+    const keyUp = (e) => {
+      const i = indexOf(e.code);
+      if (i >= 0 && FINAL_TECHNIQUES[i] && kindOf(FINAL_TECHNIQUES[i]) === "hold")
+        endHold();
+    };
     window.addEventListener("keydown", key);
-    return () => window.removeEventListener("keydown", key);
+    window.addEventListener("keyup", keyUp);
+    return () => {
+      window.removeEventListener("keydown", key);
+      window.removeEventListener("keyup", keyUp);
+    };
   });
 
   const updateSelected = (patch) => {
@@ -420,7 +501,7 @@ export default function AnnotationStudio({ song, onSaved }) {
           <Eyebrow>Teacher Maintenance · 实时打点标注</Eyebrow>
           <h2>边听边打点，生成毫秒级事件库</h2>
           <p>
-            播放中点击技法按钮（或按 1—6 键）即刻记录时间点，同一秒可连续多次；
+            播放中点击技法按钮（或按 1—9 键）即刻记录时间点，同一秒可连续多次；
             0.1× 慢速便于毫秒级精标。打点需逐条精修并「确认（毫秒级）」后才成为
             快速听辨测试正式答案。
           </p>
@@ -478,6 +559,15 @@ export default function AnnotationStudio({ song, onSaved }) {
           {playing ? "暂停" : transport.phase === "paused" ? "继续" : "播放"}
           <kbd>空格</kbd>
         </button>
+        <button
+          className="secondary-button studio-restart"
+          onClick={playFromStart}
+          aria-label="从头播放"
+          title="回到开头，带 3-2-1 倒数重新起奏"
+        >
+          <RotateCcw size={15} />
+          从头播放
+        </button>
         <div className="studio-rates" role="group" aria-label="播放倍速">
           {RATES.map((r) => (
             <button
@@ -490,31 +580,56 @@ export default function AnnotationStudio({ song, onSaved }) {
           ))}
         </div>
         <span className="studio-clock" role="timer">
-          {clock(time)}
+          {countdown > 0 ? Math.ceil(countdown) : clock(time)}
           <small>
-            {time.toFixed(3)}s / {clock(duration)}
+            {countdown > 0
+              ? "倒数中 · 第一个声音落在 0"
+              : `${Math.max(0, time).toFixed(3)}s / ${clock(duration)}`}
           </small>
         </span>
         <div className="studio-tapbar">
           {FINAL_TECHNIQUES.map((t, i) => {
             const tech = techFor(t);
+            const hold = kindOf(t) === "hold";
             return (
-              <button
-                key={t}
-                className="studio-tap"
-                style={{ "--tech": tech.color }}
-                disabled={!playing}
-                onClick={() => tap(t)}
-                title={`播放中点击打点（键 ${i + 1}）`}
-              >
-                <kbd>{i + 1}</kbd>
-                <b>{tech.name}</b>
-              </button>
+              <Fragment key={t}>
+                {i === 0 && <span className="tapbar-sep">点技法</span>}
+                {i === TAP_TECHNIQUES.length && (
+                  <span className="tapbar-sep">长按技法</span>
+                )}
+                <button
+                  className={`studio-tap ${hold ? "hold" : ""}`}
+                  style={{ "--tech": tech.color }}
+                  disabled={!playing}
+                  onClick={() => !hold && tap(t)}
+                  onPointerDown={(e) => {
+                    if (hold && e.button === 0) {
+                      e.preventDefault();
+                      beginHold(t);
+                    }
+                  }}
+                  onPointerUp={() => hold && endHold()}
+                  onPointerLeave={() => hold && endHold()}
+                  title={
+                    hold
+                      ? `播放中按住记录起止（键 ${i + 1}）`
+                      : `播放中点击打点（键 ${i + 1}）`
+                  }
+                >
+                  <kbd>{i + 1}</kbd>
+                  <b>{tech.name}</b>
+                  {hold && <i>长按</i>}
+                </button>
+              </Fragment>
             );
           })}
           {flash && (
             <span key={flash.key} className="studio-flash" role="status">
-              +{techFor(flash.technique).name} @ {flash.time.toFixed(3)}s
+              {flash.holding ? "按住中…" : "+"}
+              {techFor(flash.technique).name}
+              {kindOf(flash.technique) === "hold" && !flash.holding ? "·长按" : ""}{" "}
+              @ {flash.time.toFixed(3)}s
+              {flash.span ? `（${flash.span.toFixed(2)}s）` : ""}
             </span>
           )}
         </div>
@@ -533,10 +648,19 @@ export default function AnnotationStudio({ song, onSaved }) {
       />
 
       {/* —— 时间轴 —— */}
+      {/* 时间轴：按住即可来回拖动定位（pointer capture 让手指滑出也能跟随） */}
       <div
         className="studio-timeline"
         ref={timelineRef}
-        onPointerDown={(e) => seekTo(timeAt(e.clientX))}
+        onPointerDown={(e) => {
+          if (e.pointerType === "mouse" && e.button !== 0) return;
+          e.currentTarget.setPointerCapture?.(e.pointerId);
+          seekTo(timeAt(e.clientX));
+        }}
+        onPointerMove={(e) => {
+          if (!e.buttons) return;
+          seekTo(timeAt(e.clientX));
+        }}
       >
         <div className="waveform" aria-hidden="true">
           {bars.map((h, i) => (
@@ -745,7 +869,7 @@ export default function AnnotationStudio({ song, onSaved }) {
               <p>
                 流程：播放（可 0.1×）→ 听到技法瞬间点按钮 / 按 1—6 键打点 →
                 暂停 → 在下方列表逐条选中，用 ±1ms 微调锚点并「确认（毫秒级）」。
-                点击时间轴任意位置跳转。
+                时间轴可点击，也可按住来回拖动定位。
               </p>
               <p className="studio-coverage">
                 正式测验可用事件：{officialEvents.length} 个 · 覆盖技法{" "}

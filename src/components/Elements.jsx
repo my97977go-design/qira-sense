@@ -26,7 +26,8 @@ export function Wordmark() {
 }
 export function Feedback({ game }) {
   const f = game.feedback;
-  return f && performance.now() - f.born < 430 ? (
+  // 展示时长与 v8.css 判定动画（0.68s）对齐
+  return f && performance.now() - f.born < 680 ? (
     <div key={f.serial} className={`feedback ${f.grade}`} aria-hidden="true">
       <strong>
         {{ perfect: "精准", good: "命中", miss: "漏拍", empty: "跟上下一拍" }[

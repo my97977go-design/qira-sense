@@ -872,6 +872,17 @@ small {
   align-items: center;
   justify-content: center;
   flex-direction: column;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  transition: border-color 0.2s, background 0.2s;
+}
+/* 圆盘即按钮：按下时给一点回弹反馈 */
+.pulse-disc:active {
+  transform: translate(-50%, -50%) scale(0.96);
+  border-color: #e2c693cc;
+  background: radial-gradient(circle, #cbb78126, #141911 70%);
 }
 .pulse-disc:before {
   content: "";
@@ -1092,6 +1103,10 @@ small {
   color: #a1af91;
   font-size: 9px;
 }
+.technique-tags span.hold {
+  border-color: #d8a35a55;
+  color: #d8b06a;
+}
 .round-play {
   display: flex;
   gap: 12px;
@@ -1246,6 +1261,10 @@ small {
   color: var(--tech);
   overflow: hidden;
   z-index: 2;
+}
+.annotation-track button.hold {
+  border-style: dashed;
+  background: color-mix(in srgb, var(--tech) 20%, transparent);
 }
 .annotation-track button.active,
 .annotation-track button:hover {
@@ -1444,7 +1463,7 @@ small {
   position: absolute;
   inset: 0;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(7, 1fr);
   padding-bottom: 52px;
 }
 .lane {
@@ -1491,9 +1510,9 @@ small {
 }
 .falling-note {
   position: absolute;
-  width: 21%;
+  width: 12.5%;
   height: 17px;
-  transform: translateY(-50%);
+  transform: translate(-50%, -50%);
   border-radius: 3px;
   border: 1px solid color-mix(in srgb, var(--lane) 80%, white);
   background: linear-gradient(
@@ -1578,7 +1597,7 @@ small {
   bottom: 0;
   height: 68px;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(7, 1fr);
   gap: 4px;
   padding: 5px 6px 7px;
   background: #10170fff;
@@ -1616,6 +1635,204 @@ small {
   font-size: 8px;
   white-space: nowrap;
   letter-spacing: 0.3px;
+}
+/* 长按技法：下落光条与长按轨 */
+.lane.hold-lane {
+  background: linear-gradient(
+    transparent,
+    color-mix(in srgb, var(--lane) 6%, transparent)
+  );
+}
+.hold-note {
+  position: absolute;
+  width: 9%;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--lane) 70%, white);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--lane) 26%, transparent),
+    color-mix(in srgb, var(--lane) 55%, transparent)
+  );
+  box-shadow: 0 0 16px color-mix(in srgb, var(--lane) 16%, transparent);
+  will-change: top, height;
+}
+.hold-note > i {
+  position: absolute;
+  left: -3px;
+  right: -3px;
+  bottom: -2px;
+  height: 7px;
+  border-radius: 999px;
+  background: linear-gradient(
+    color-mix(in srgb, var(--lane) 85%, white),
+    var(--lane)
+  );
+}
+.hold-note > span {
+  position: absolute;
+  top: -16px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  letter-spacing: 0.5px;
+  color: var(--lane);
+  white-space: nowrap;
+}
+.hold-note.held {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--lane) 45%, transparent),
+    color-mix(in srgb, var(--lane) 80%, transparent)
+  );
+  box-shadow: 0 0 26px color-mix(in srgb, var(--lane) 35%, transparent);
+}
+.lane-pads button.hold-pad {
+  border-style: dashed;
+}
+.lane-pads button.hold-pad.holding {
+  background: color-mix(in srgb, var(--lane) 32%, transparent);
+  box-shadow: inset 0 0 22px color-mix(in srgb, var(--lane) 30%, transparent);
+}
+.lane-guide > div.hold span i {
+  font-style: normal;
+  margin-left: 6px;
+  padding: 1px 5px;
+  border: 1px solid color-mix(in srgb, var(--lane) 40%, transparent);
+  border-radius: 999px;
+  font-size: 8px;
+  color: var(--lane);
+}
+/* 3-2-1 倒计时覆盖层：0 不显示，数到 0 时第一个声音进场 */
+.count-in {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at 50% 50%,
+    #0c120cd9,
+    #0c120f80 55%,
+    transparent 78%
+  );
+}
+.count-in > b {
+  font-family: var(--serif);
+  font-size: 116px;
+  line-height: 1;
+  color: #e2ca8c;
+  text-shadow: 0 0 44px #e2ca8c66;
+  animation: count-pop 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.count-in > small {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: #a7b691;
+}
+@keyframes count-pop {
+  0% {
+    transform: scale(2.2);
+    opacity: 0;
+    filter: blur(6px);
+  }
+  40% {
+    opacity: 1;
+    filter: blur(0);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+/* 渐快 / 渐慢预提示横幅（pulse-stage 顶部） */
+.tempo-mark {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 16px;
+  border: 1px solid #d8b97e40;
+  border-radius: 999px;
+  background: #10160fdf;
+  white-space: nowrap;
+  animation: tempo-in 0.45s ease-out;
+}
+.tempo-mark b {
+  font-family: var(--serif);
+  font-size: 15px;
+  letter-spacing: 3px;
+  color: var(--gold);
+}
+.tempo-mark.accel b {
+  color: #efbb79;
+}
+.tempo-mark.ritard b {
+  color: #8ac7cf;
+}
+.tempo-mark small {
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: #a7b691;
+}
+.tempo-mark.live {
+  box-shadow: 0 0 22px #d8b97e2e;
+  border-color: #d8b97e73;
+}
+@keyframes tempo-in {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+/* 预备拍期间的“模拟点击”：打拍按钮随每一拍亮起再淡出 */
+.tap-button {
+  position: relative;
+}
+.tap-demo {
+  position: absolute;
+  inset: -2px;
+  border: 1px solid var(--gold);
+  border-radius: 6px;
+  background: #e2c6952e;
+  box-shadow:
+    0 0 24px #d8b97e4d,
+    inset 0 0 18px #d8b97e33;
+  pointer-events: none;
+  animation: ghost-tap 0.45s ease-out forwards;
+}
+@keyframes ghost-tap {
+  0% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  45% {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .count-in > b,
+  .tempo-mark,
+  .tap-demo {
+    animation: none;
+  }
 }
 .highway-wrap .feedback {
   top: 62%;

@@ -127,6 +127,7 @@ export default function App() {
           "KeyF",
           "KeyJ",
           "KeyK",
+          "KeyL",
           "Digit1",
           "Digit2",
           "Digit3",
@@ -143,14 +144,26 @@ export default function App() {
         return;
       }
       if (g.screen === "challenge") {
-        const i = ["KeyD", "KeyF", "KeyJ", "KeyK"].indexOf(e.code),
-          digit = ["Digit1", "Digit2", "Digit3", "Digit4"].indexOf(e.code);
-        if (i >= 0 || digit >= 0) {
+        const i = ["KeyD", "KeyF", "KeyJ", "KeyK", "KeyL"].indexOf(e.code);
+        if (i >= 0) {
           e.preventDefault();
-          g.tap(i >= 0 ? i : digit);
+          g.tap(i);
+          return;
+        }
+        const h = ["Digit1", "Digit2", "Digit3"].indexOf(e.code);
+        if (h >= 0) {
+          e.preventDefault();
+          if (!e.repeat) g.holdStart(5 + h);
         }
       }
       if (
+        e.code === "Space" &&
+        g.status === "armed"
+      ) {
+        // 桌面端快捷确认：加载完直接空格开倒数
+        e.preventDefault();
+        g.confirm();
+      } else if (
         e.code === "Space" &&
         g.screen === "rhythm" &&
         g.status === "playing"
@@ -167,7 +180,17 @@ export default function App() {
       }
     };
     window.addEventListener("keydown", key);
-    return () => window.removeEventListener("keydown", key);
+    const keyUp = (e) => {
+      const g = current.current;
+      if (g.screen !== "challenge") return;
+      const h = ["Digit1", "Digit2", "Digit3"].indexOf(e.code);
+      if (h >= 0) g.holdEnd(5 + h);
+    };
+    window.addEventListener("keyup", keyUp);
+    return () => {
+      window.removeEventListener("keydown", key);
+      window.removeEventListener("keyup", keyUp);
+    };
   }, [settings, ranking.opened]);
   const openSettings = () => {
     if (game.status === "playing") game.togglePause();
@@ -246,40 +269,43 @@ export default function App() {
         </div>
       </header>
       <main className="main-content">
-        {game.screen === "home" ? (
-          <Home game={game} song={song} muted={muted} />
-        ) : game.screen === "learning" ? (
-          <AdaptiveLearning game={game} song={song} />
-        ) : game.screen === "finalTest" ? (
-          <FinalListeningTest game={game} song={song} />
-        ) : game.screen === "teacher" ? (
-          <TeacherMaintenance
-            game={game}
-            song={song}
-            onSongSaved={setSong}
-          />
-        ) : (
-          <div className="session-page">
-            {game.screen === "rhythm" && <Rhythm game={game} />}{" "}
-            {game.screen === "map" && (
-              <SoundMap game={game} song={song} request={mapRequest} />
-            )}{" "}
-            {game.screen === "challenge" && (
-              <Challenge game={game} song={song} />
-            )}
-            {game.screen === "library" && (
-              <TechniqueLibrary
-                song={song}
-                onListen={(techniqueId, annotationId) => {
-                  setActiveLesson(null);
-                  setMapRequest({ techniqueId, annotationId });
-                  baseGame.navigate("map");
-                }}
-              />
-            )}
-            <GameOverlay game={game} />
-          </div>
-        )}
+        {/* key=screen：切屏即重挂载，触发 .screen-swap 转场动画 */}
+        <div className="screen-swap" key={game.screen}>
+          {game.screen === "home" ? (
+            <Home game={game} song={song} muted={muted} />
+          ) : game.screen === "learning" ? (
+            <AdaptiveLearning game={game} song={song} />
+          ) : game.screen === "finalTest" ? (
+            <FinalListeningTest game={game} song={song} />
+          ) : game.screen === "teacher" ? (
+            <TeacherMaintenance
+              game={game}
+              song={song}
+              onSongSaved={setSong}
+            />
+          ) : (
+            <div className="session-page">
+              {game.screen === "rhythm" && <Rhythm game={game} />}{" "}
+              {game.screen === "map" && (
+                <SoundMap game={game} song={song} request={mapRequest} />
+              )}{" "}
+              {game.screen === "challenge" && (
+                <Challenge game={game} song={song} />
+              )}
+              {game.screen === "library" && (
+                <TechniqueLibrary
+                  song={song}
+                  onListen={(techniqueId, annotationId) => {
+                    setActiveLesson(null);
+                    setMapRequest({ techniqueId, annotationId });
+                    baseGame.navigate("map");
+                  }}
+                />
+              )}
+              <GameOverlay game={game} />
+            </div>
+          )}
+        </div>
       </main>
       <footer className="site-footer">
         <div className="footer-track">

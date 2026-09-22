@@ -6,7 +6,7 @@ export default defineConfig({
   esbuild: { jsx: "automatic" },
   server: {
     host: "0.0.0.0",
-    allowedHosts: ["terminal.local"],
+    allowedHosts: ["terminal.local", ".trycloudflare.com"],
     proxy: { "/api": "http://127.0.0.1:5191" },
   },
 });

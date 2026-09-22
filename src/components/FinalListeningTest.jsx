@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Play, Square, RotateCcw, AlertTriangle, Flame } from "lucide-react";
 import { transport } from "../audio/transport.js";
+import { COUNT_IN_SECONDS, detectLeadSilence } from "../audio/leadIn.js";
 import { selectOfficialEvents, scoreFinalTest } from "../learning/finalTest.js";
 import {
   FINAL_TECHNIQUES,
   FINAL_TEST_TOLERANCE_MS,
   finalTestPassRule,
+  kindOf,
 } from "../learning/learningConfig.js";
 import { useKnowledge } from "../knowledge/KnowledgeContext.jsx";
 import { Eyebrow, clock } from "./Elements.jsx";
@@ -47,6 +49,7 @@ export default function FinalListeningTest({ game, song }) {
   const [difficulty, setDifficulty] = useState("hard");
   const [responses, setResponses] = useState([]);
   const [time, setTime] = useState(0);
+  const [countdown, setCountdown] = useState(0);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
   const [combo, setCombo] = useState(0);
@@ -78,14 +81,16 @@ export default function FinalListeningTest({ game, song }) {
       if (transport.phase === "playing") {
         const t = transport.time;
         setTime(t);
-        for (const ev of answerRef.current) {
-          if (usedRef.current.has(ev.id)) continue;
-          if (t - ev.anchor > tol) {
-            usedRef.current.add(ev.id);
-            setCombo(0);
-            showJudge({ kind: "miss", technique: ev.technique });
+        setCountdown(transport.timeUntilStart);
+        if (transport.timeUntilStart <= 0)
+          for (const ev of answerRef.current) {
+            if (usedRef.current.has(ev.id)) continue;
+            if (t - ev.anchor > tol) {
+              usedRef.current.add(ev.id);
+              setCombo(0);
+              showJudge({ kind: "miss", technique: ev.technique });
+            }
           }
-        }
       }
       raf = requestAnimationFrame(tick);
     };
@@ -112,9 +117,17 @@ export default function FinalListeningTest({ game, song }) {
     const key = (e) => {
       if (phase !== "playing" || e.repeat || e.ctrlKey || e.altKey || e.metaKey)
         return;
-      const i = ["Digit1", "Digit2", "Digit3", "Digit4", "Digit5", "Digit6"].indexOf(
-        e.code,
-      );
+      const i = [
+        "Digit1",
+        "Digit2",
+        "Digit3",
+        "Digit4",
+        "Digit5",
+        "Digit6",
+        "Digit7",
+        "Digit8",
+        "Digit9",
+      ].indexOf(e.code);
       if (i >= 0 && FINAL_TECHNIQUES[i]) {
         e.preventDefault();
         record(FINAL_TECHNIQUES[i]);
@@ -142,9 +155,12 @@ export default function FinalListeningTest({ game, song }) {
       setJudge(null);
       usedRef.current = new Set();
       endTimeRef.current = song.duration;
-      transport.play(0, 0, song.duration);
+      // 3-2-1 倒数（0 不显示）：头部空白计入倒数，第一个声音正好落在 0
+      const lead = detectLeadSilence(transport.buffer);
+      transport.play(lead, COUNT_IN_SECONDS, song.duration);
       setPhase("playing");
-      setTime(0);
+      setTime(lead - COUNT_IN_SECONDS);
+      setCountdown(COUNT_IN_SECONDS);
     } catch (e) {
       setError(e.message || "录音加载失败，请重试。");
     }
@@ -152,7 +168,12 @@ export default function FinalListeningTest({ game, song }) {
 
   // 打点 + 实时判定（仅演出反馈；最终成绩仍由 scoreFinalTest 统一计算）。
   const record = (technique) => {
-    if (phase !== "playing" || transport.phase !== "playing") return;
+    if (
+      phase !== "playing" ||
+      transport.phase !== "playing" ||
+      transport.timeUntilStart > 0
+    )
+      return;
     const t = transport.time;
     setResponses((r) => [...r, { time: t, technique }]);
     judgeSeq.current += 1;
@@ -318,6 +339,12 @@ export default function FinalListeningTest({ game, song }) {
           </div>
 
           <div className="finaltest-arena">
+            {countdown > 0 && (
+              <div className="count-in" aria-live="polite">
+                <b key={Math.ceil(countdown)}>{Math.ceil(countdown)}</b>
+                <small>第一个声音落在 0</small>
+              </div>
+            )}
             <PulseLine
               frames={baseFeatures.frames}
               time={phase === "playing" ? time : 0}
@@ -393,16 +420,20 @@ export default function FinalListeningTest({ game, song }) {
             {FINAL_TECHNIQUES.map((t, i) => {
               const tech = techFor(t);
               const flashing = pressed?.technique === t;
+              const hold = kindOf(t) === "hold";
               return (
                 <button
                   key={flashing ? `${t}-${pressed.serial}` : t}
-                  className={`finaltest-tech ${flashing ? "flash" : ""}`}
+                  className={`finaltest-tech ${flashing ? "flash" : ""} ${
+                    hold ? "hold" : ""
+                  }`}
                   style={{ "--tech": tech.color }}
-                  disabled={phase !== "playing"}
+                  disabled={phase !== "playing" || countdown > 0}
                   onClick={() => record(t)}
                 >
                   <kbd>{i + 1}</kbd>
                   <b>{tech.name}</b>
+                  <i>{hold ? "长按" : "点"}</i>
                 </button>
               );
             })}

@@ -1,6 +1,8 @@
 import originalV2 from "../data/song.json" with { type: "json" };
-import { laneOf } from "./chart.js";
-import { FINAL_TECHNIQUES } from "../learning/learningConfig.js";
+import {
+  FINAL_TECHNIQUES,
+  supportsAnnotation,
+} from "../learning/learningConfig.js";
 
 // V8 schema v3：毫秒级事件数据架构。
 // 读取顺序：v3 → 旧 v2（自动迁移）→ 随项目原始标注（自动迁移）。
@@ -98,7 +100,7 @@ export function validateSong(input) {
         a.end > originalV2.duration
       )
         throw new Error("标注区间超出录音范围。");
-      if (laneOf(a.technique) < 0)
+      if (!supportsAnnotation(a.technique))
         throw new Error("标注含有尚未支持的技法。");
       const repeatCount = a.repeatCount ?? 1;
       if (
@@ -175,7 +177,10 @@ export function validateSong(input) {
   };
 }
 
-export const original = migrateV2toV3(originalV2);
+// 随项目内置的原始标注。固化后 song.json 可直接是 v3（教师导出回填），
+// 此时跳过迁移、走同一套校验；旧 v2 文件仍自动迁移，两种格式都能启动。
+export const original =
+  originalV2.schemaVersion === 3 ? validateSong(originalV2) : migrateV2toV3(originalV2);
 
 export function loadSong() {
   // 先读 v3；没有再读旧 v2 并迁移；最后回退到随项目原始标注（迁移后）。

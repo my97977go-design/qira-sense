@@ -51,6 +51,11 @@ export class AudioTransport {
         )
       : this.offset;
   }
+  // 倒计时剩余秒数：播放已排程但声音尚未开始的阶段 > 0，开始后恒为 0。
+  get timeUntilStart() {
+    if (this.phase !== "playing" || !this.context) return 0;
+    return Math.max(0, this.startedAt - this.context.currentTime);
+  }
   play(offset = 0, delay = 0, end = this.buffer?.duration) {
     if (!this.buffer) return;
     this.disconnectSource();
