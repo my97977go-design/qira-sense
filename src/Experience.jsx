@@ -212,9 +212,11 @@ export default function App() {
         </nav>
         <div className="header-actions">
           <span className="edition">
+            本项目为：
+            <br />
             {syllabus.project.program}
             <br />
-            {syllabus.project.stage}
+            <strong>{syllabus.project.stage}</strong>
           </span>
           <button
             className="icon-button"

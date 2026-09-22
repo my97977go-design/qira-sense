@@ -2508,12 +2508,16 @@
 /* Shared scoreboards and chapter hierarchy */
 .site-header .edition {
   display: block;
-  max-width: 340px;
+  max-width: 420px;
   text-align: right;
-  font-size: 10px;
-  line-height: 1.7;
+  font-size: 12px;
+  line-height: 1.6;
   color: #a5af97;
   letter-spacing: 0.2px;
+}
+.site-header .edition strong {
+  font-weight: 700;
+  color: #c8d2ba;
 }
 .site-header nav {
   gap: 23px;
