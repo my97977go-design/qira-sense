@@ -16,7 +16,7 @@ export default function Highway({ game, previewNotes = [] }) {
   return (
     <div
       className="highway"
-      aria-label="连续下落八轨：D F J K L 点技法，1 2 3 长按技法"
+      aria-label="连续下落七轨：D F J K 点技法，1 2 3 长按技法"
     >
       <div className="highway-light" />
       <div className="lane-grid">

@@ -10,7 +10,6 @@ export const ANIMATIONS = [
   "return-glide",
   "dianbow",
   "paogong",
-  "dianzhi-glide",
 ];
 export function validateLibrary(value) {
   if (

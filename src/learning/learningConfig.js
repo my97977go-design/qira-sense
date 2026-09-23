@@ -2,12 +2,12 @@
 // 注意：以下阈值均为可配置的产品默认参数（provisional），
 // 不是经过实验验证的科学标准，可在本文件中直接调整。
 // 技法两种形态：tap = 点状瞬时动作；hold = 持续状态（游戏中长按光条）。
-// 大上滑音/大下滑音并入上滑/下滑轨道；回滑音是正式点状技法（独立 L 轨）。
+// 大上滑音/大下滑音并入上滑/下滑轨道；回滑音是正式点状技法（独立 K 轨）。
+// 垫指滑音已按教学要求从技法体系中删除。
 export const TECHNIQUE_KIND = {
   "up-glide": "tap",
   "down-glide": "tap",
   paogong: "tap",
-  "dianzhi-glide": "tap",
   dianbow: "tap",
   "return-glide": "tap",
   vibrato: "hold",

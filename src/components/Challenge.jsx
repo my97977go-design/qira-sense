@@ -78,7 +78,7 @@ export default function Challenge({ game, song }) {
               <span className="small-label">连续演奏 · 技法与声音对应</span>
               <h2>完成这段技法挑战</h2>
               <p>
-                点技法按 D / F / J / K / L，
+                点技法按 D / F / J / K，
                 <br />
                 长按光条按住 1 / 2 / 3，或直接点按音轨。
               </p>

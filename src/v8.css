@@ -1939,12 +1939,6 @@
   resize: vertical;
 }
 
-/* 回滑音转正后的八轨布局（5 点 + 3 长按） */
-.lane-grid,
-.lane-pads {
-  grid-template-columns: repeat(8, 1fr);
-}
-
 /* 长按即录入的按钮与时间轴：禁止选字与长按呼出菜单 */
 .studio-tap,
 .finaltest-tech,

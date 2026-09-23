@@ -127,7 +127,6 @@ export default function App() {
           "KeyF",
           "KeyJ",
           "KeyK",
-          "KeyL",
           "Digit1",
           "Digit2",
           "Digit3",
@@ -144,7 +143,7 @@ export default function App() {
         return;
       }
       if (g.screen === "challenge") {
-        const i = ["KeyD", "KeyF", "KeyJ", "KeyK", "KeyL"].indexOf(e.code);
+        const i = ["KeyD", "KeyF", "KeyJ", "KeyK"].indexOf(e.code);
         if (i >= 0) {
           e.preventDefault();
           g.tap(i);
@@ -153,7 +152,7 @@ export default function App() {
         const h = ["Digit1", "Digit2", "Digit3"].indexOf(e.code);
         if (h >= 0) {
           e.preventDefault();
-          if (!e.repeat) g.holdStart(5 + h);
+          if (!e.repeat) g.holdStart(4 + h);
         }
       }
       if (
@@ -184,7 +183,7 @@ export default function App() {
       const g = current.current;
       if (g.screen !== "challenge") return;
       const h = ["Digit1", "Digit2", "Digit3"].indexOf(e.code);
-      if (h >= 0) g.holdEnd(5 + h);
+      if (h >= 0) g.holdEnd(4 + h);
     };
     window.addEventListener("keyup", keyUp);
     return () => {

@@ -26,7 +26,7 @@ import PulseLine from "./PulseLine.jsx";
 import baseFeatures from "../data/features.json";
 
 // 实时打点标注台：整曲播放（可 0.1×/0.5×/0.75× 慢速精标），
-// 点技法（1—6）听到瞬间点按钮或按键打点；长按技法（7—9）按住记起点、松手记终点。
+// 点技法（1—5）听到瞬间点按钮或按键打点；长按技法（6—8）按住记起点、松手记终点。
 // 打点默认 human-confirmed / needs-review；逐条精修锚点后
 // 「确认（毫秒级）」才成为快速听辨测试的正式答案。
 const RATES = [0.1, 0.5, 0.75, 1];
@@ -288,7 +288,7 @@ export default function AnnotationStudio({ song, onSaved }) {
     setFlash({ key: ev.id, technique: p.technique, time: start, span: end - start });
   };
 
-  // —— 键盘：1—9 打点/长按，空格播放/暂停，Ctrl+Z/Y 撤销 ——
+  // —— 键盘：1—8 打点/长按，空格播放/暂停，Ctrl+Z/Y 撤销 ——
   useEffect(() => {
     const codes = [
       "Digit1",
@@ -299,7 +299,6 @@ export default function AnnotationStudio({ song, onSaved }) {
       "Digit6",
       "Digit7",
       "Digit8",
-      "Digit9",
     ];
     const indexOf = (code) => {
       let i = codes.indexOf(code);
@@ -501,7 +500,7 @@ export default function AnnotationStudio({ song, onSaved }) {
           <Eyebrow>Teacher Maintenance · 实时打点标注</Eyebrow>
           <h2>边听边打点，生成毫秒级事件库</h2>
           <p>
-            播放中点击技法按钮（或按 1—9 键）即刻记录时间点，同一秒可连续多次；
+            播放中点击技法按钮（或按 1—8 键）即刻记录时间点，同一秒可连续多次；
             0.1× 慢速便于毫秒级精标。打点需逐条精修并「确认（毫秒级）」后才成为
             快速听辨测试正式答案。
           </p>
@@ -867,7 +866,7 @@ export default function AnnotationStudio({ song, onSaved }) {
           ) : (
             <div className="studio-hint">
               <p>
-                流程：播放（可 0.1×）→ 听到技法瞬间点按钮 / 按 1—6 键打点 →
+                流程：播放（可 0.1×）→ 听到技法瞬间点按钮 / 按 1—5 键打点 →
                 暂停 → 在下方列表逐条选中，用 ±1ms 微调锚点并「确认（毫秒级）」。
                 时间轴可点击，也可按住来回拖动定位。
               </p>

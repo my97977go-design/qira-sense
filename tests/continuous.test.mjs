@@ -80,10 +80,10 @@ test("three groups of four preserve all repetitions with honest legacy subdivisi
     );
   }
   assert.equal(chart.filter((n) => n.technique === "dayin").length, 1);
-  // 回滑音已转正为点状技法：谱面中出现专属 L 轨音符
+  // 回滑音已转正为点状技法：谱面中出现专属 K 轨音符
   const glideNotes = chart.filter((n) => n.technique === "return-glide");
   assert.ok(glideNotes.length > 0);
-  assert.ok(glideNotes.every((n) => LANES[n.lane].key === "L"));
+  assert.ok(glideNotes.every((n) => LANES[n.lane].key === "K"));
   // 持续性技法整段一条长按光条
   const holds = chart.filter((n) => n.technique === "slide-vibrato");
   assert.equal(holds.length, 4);
@@ -96,7 +96,7 @@ test("continuous chart has no answer windows or gaps caused by feedback", () => 
   for (let i = 0; i < chart.length; i++) {
     const n = chart[i];
     assert.ok(
-      n.time >= 0 && n.time < song.duration && n.lane >= 0 && n.lane < 8,
+      n.time >= 0 && n.time < song.duration && n.lane >= 0 && n.lane < 7,
     );
     if (i) assert.ok(n.time - chart[i - 1].time <= 0.76);
     if (n.kind === "technique" || n.kind === "hold") {
@@ -148,7 +148,7 @@ test("hold lanes own hold notes; tap lanes never match them", () => {
   assert.ok(hold);
   assert.equal(LANES[hold.lane].hold, true);
   assert.equal(LANES.filter((l) => l.hold).length, 3);
-  assert.equal(LANES.filter((l) => !l.hold).length, 5);
+  assert.equal(LANES.filter((l) => !l.hold).length, 4);
   assert.equal(closestNote(notes, {}, hold.time, hold.lane), null);
   assert.equal(closestHoldNote(notes, {}, hold.time, hold.lane).id, hold.id);
   assert.equal(closestHoldNote(notes, {}, hold.time, 0), null);

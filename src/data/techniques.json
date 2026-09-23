@@ -170,22 +170,6 @@
       "examples": []
     },
     {
-      "id": "dianzhi-glide",
-      "name": "垫指滑音",
-      "color": "#6fb5a2",
-      "animation": "dianzhi-glide",
-      "input": "tap",
-      "shortExplanation": "借助相邻手指的接力垫按完成滑行，使滑音在有限把位内依然连贯圆润。",
-      "pitchCue": "观察滑行过程中是否有手指接力带来的细微台阶或加速感。",
-      "listeningCue": "听滑音是否圆润连贯，留意其中若有若无的接力痕迹。",
-      "aestheticPrompt": "这段滑音的圆润或转折，怎样影响乐句的语气？",
-      "commonConfusion": "垫指滑音仍是滑音，不要因接力痕迹而误判为两个独立音。",
-      "question": "这段滑行是一气呵成，还是能听见手指接力的痕迹？",
-      "reviewStatus": "teaching-draft",
-      "sourceNote": "可扩充的教学条目；当前录音没有人工确认的垫指滑音例证。",
-      "examples": []
-    },
-    {
       "id": "large-down-glide",
       "name": "大下滑音",
       "color": "#7fc4dc",

@@ -126,7 +126,6 @@ export default function FinalListeningTest({ game, song }) {
         "Digit6",
         "Digit7",
         "Digit8",
-        "Digit9",
       ].indexOf(e.code);
       if (i >= 0 && FINAL_TECHNIQUES[i]) {
         e.preventDefault();
@@ -287,7 +286,7 @@ export default function FinalListeningTest({ game, song }) {
           <h1>没有提示，你能听出多少？</h1>
           <p>
             完整《大起板》连续播放。听到技法出现的瞬间，点击对应按钮或按数字键
-            1—6。没有下落提示，没有节拍填充，不计入排行榜。
+            1—5。没有下落提示，没有节拍填充，不计入排行榜。
           </p>
         </div>
         <button className="text-button" onClick={() => game.navigate("home")}>

@@ -1,5 +1,5 @@
 import { beatGrid } from "../audio/beat.js";
-// 5 条点技法轨（D F J K L）+ 3 条长按轨（1 2 3）。
+// 4 条点技法轨（D F J K）+ 3 条长按轨（1 2 3）。
 // 点技法：瞬时动作，到达判定线时点按；长按技法：持续状态，光条带长度，按住即可。
 export const LANES = [
   {
@@ -25,13 +25,6 @@ export const LANES = [
   },
   {
     key: "K",
-    name: "垫指滑音",
-    hint: "指间接力滑行",
-    color: "#6fb5a2",
-    ids: ["dianzhi-glide"],
-  },
-  {
-    key: "L",
     name: "回滑",
     hint: "滑去又回",
     color: "#9ccdd8",
@@ -171,7 +164,7 @@ export function makeChart(song, beat, mode = "challenge") {
       notes.push({
         id: `pulse-${i}`,
         time,
-        lane: i % 5,
+        lane: i % 4,
         kind: "beat",
         label: "节拍",
         timingSource: "estimated-beat",

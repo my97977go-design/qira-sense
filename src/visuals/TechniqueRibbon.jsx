@@ -15,12 +15,7 @@ function point(id, x, repeat, dynamics) {
     y = 0.07 + 0.87 * (local * local * (3 - 2 * local));
   else if (id === "paogong")
     y = 0.66 - 0.36 * Math.abs(Math.sin(x * Math.PI * 4)) * (1 - 0.25 * x);
-  else if (id === "dianzhi-glide") {
-    // 三段接力：每段内平滑小滑，段间出现细微台阶
-    const k = Math.min(2, Math.floor(local * 3)),
-      f = local * 3 - k;
-    y = 0.78 - 0.58 * ((k + f * f * (3 - 2 * f)) / 3);
-  } else if (id === "dianbow")
+  else if (id === "dianbow")
     y = 0.6 - 0.23 * Math.abs(Math.sin(x * Math.PI * 3));
   else if (id === "up-glide")
     y = 0.78 - 0.58 * (local * local * (3 - 2 * local));
