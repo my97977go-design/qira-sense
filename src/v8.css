@@ -2122,7 +2122,93 @@
   font-size: 12px;
   line-height: 1.6;
 }
+.baked-authoritative {
+  margin: 2px;
+  padding: 9px 12px;
+  border-radius: 9px;
+  border: 1px solid rgba(217, 215, 188, 0.22);
+  background: rgba(217, 215, 188, 0.08);
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.baked-authoritative b {
+  color: var(--accent, #d9d7bc);
+}
+.baked-subhead {
+  margin: 12px 2px 2px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--line);
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+/* 长按事件的持续区间（如打音 2.396–9.520s）。 */
+.baked-span {
+  position: absolute;
+  top: 0;
+  bottom: 30px;
+  background: color-mix(in srgb, var(--tech) 16%, transparent);
+  border-left: 2px solid var(--tech);
+  pointer-events: none;
+}
+.baked-tick.active {
+  width: 4px;
+  margin-left: -2px;
+  opacity: 1;
+  box-shadow: 0 0 8px var(--tech);
+}
+/* 技法构成摘要：上滑音 ×22 · 打音 ×3 · … */
+.baked-techs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: 2px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.baked-techs > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.baked-techs i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+/* 事件主清单：两列排布，压缩 41 行的纵向长度。 */
+.baked-events {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px 10px;
+}
+.baked-event b {
+  flex: 1;
+}
+.baked-event small {
+  flex: 0 0 auto;
+}
+/* 旧区间折叠区。 */
+.baked-legacy {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--line);
+}
+.baked-legacy summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  user-select: none;
+}
+.baked-legacy summary:hover {
+  color: var(--text);
+}
 @media (max-width: 640px) {
+  .baked-events {
+    grid-template-columns: 1fr;
+  }
   .baked-row {
     flex-wrap: wrap;
     row-gap: 2px;
