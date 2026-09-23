@@ -7,6 +7,9 @@ export const clock = (t) =>
     .padStart(2, "0")}`;
 export const running = (s) => ["playing", "paused"].includes(s);
 export const formatBpm = (b) => (Number.isInteger(b) ? b : b?.toFixed(1));
+// 技法两字短名，用于时间轴上的紧凑标签：上滑音→上滑、打音→打音、揉弦→揉弦。
+export const shortTech = (name) =>
+  name.length > 2 && name.endsWith("音") ? name.slice(0, -1) : name;
 export function Wordmark() {
   return (
     <span className="wordmark">

@@ -33,7 +33,9 @@ export default function GameOverlay({ game }) {
         </p>
       </div>
     );
-  if (game.status === "paused")
+  if (game.status === "paused") {
+    // 声音地图暂停只靠圆形播放按钮的图标切换，不盖全屏遮罩，动画保持可见
+    if (game.screen === "map") return null;
     return (
       <div className="game-overlay">
         <Eyebrow>已暂停</Eyebrow>
@@ -47,6 +49,7 @@ export default function GameOverlay({ game }) {
         </button>
       </div>
     );
+  }
   if (game.status === "error")
     return (
       <div className="game-overlay">

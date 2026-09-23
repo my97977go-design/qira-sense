@@ -6,7 +6,7 @@ export const techFor = (id) => {
   const t = TECHNIQUES.find((t) => t.id === id) || TECHNIQUES[0];
   return { ...t, description: t.shortExplanation };
 };
-function point(id, x, repeat, dynamics) {
+function point(id, x, repeat, dynamics, duration = 2.6) {
   const local = repeat > 1 ? (x * repeat) % 1 : x;
   let y;
   if (id === "large-up-glide")
@@ -31,11 +31,21 @@ function point(id, x, repeat, dynamics) {
     y = 0.5 + Math.sin(x * Math.PI * 12) * amp;
   } else if (id === "slide-vibrato")
     y = 0.67 - 0.28 * x + Math.sin(x * Math.PI * 10) * (0.05 + 0.14 * x);
-  else if (id === "dayin")
-    y =
-      0.57 -
-      0.4 * Math.exp(-(((x - 0.4) / 0.035) ** 2)) +
-      0.16 * Math.exp(-(((x - 0.49) / 0.065) ** 2));
+  else if (id === "dayin") {
+    // 打音＝手指高频击弦：一串有规律的下陷波动，强拍深、弱拍浅交替；
+    // 次数随事件时长增加（约 0.55s 一击），即使音高曲线没抓到每一次，动画也如实呈现。
+    const cycles = Math.min(16, Math.max(3, Math.round(duration / 0.55)));
+    const env =
+      dynamics === "crescendo"
+        ? 0.5 + 0.65 * x
+        : dynamics === "diminuendo"
+          ? 1.15 - 0.65 * x
+          : 1;
+    const u = x * cycles;
+    const k = Math.round(u);
+    const amp = (k % 2 === 0 ? 0.3 : 0.13) * env;
+    y = 0.5 + amp * Math.exp(-(((u - k) / 0.3) ** 2) * 2);
+  }
   else y = 0.6 - 0.38 * Math.sin(x * Math.PI) ** 2;
   return [24 + x * 652, 24 + y * 206];
 }
@@ -44,6 +54,7 @@ export default function TechniqueRibbon({
   progress = 0,
   repeat = 1,
   dynamics = "steady",
+  duration = 2.6,
   mini = false,
   playing = false,
 }) {
@@ -53,13 +64,14 @@ export default function TechniqueRibbon({
     paths = [];
   for (let r = 0; r < repeat; r++) {
     const pts = [];
-    for (let i = 0; i <= 100; i++) {
-      const x = (r + (i / 100) * (repeat > 1 ? 0.97 : 1)) / repeat;
+    for (let i = 0; i <= 140; i++) {
+      const x = (r + (i / 140) * (repeat > 1 ? 0.97 : 1)) / repeat;
       const [px, py] = point(
         tech.animation,
         Math.min(0.999999, x),
         repeat,
         dynamics,
+        duration,
       );
       pts.push(`${i ? "L" : "M"}${px.toFixed(1)},${py.toFixed(1)}`);
     }
@@ -70,6 +82,7 @@ export default function TechniqueRibbon({
     Math.min(0.999999, Math.max(0, progress)),
     repeat,
     dynamics,
+    duration,
   );
   return (
     <svg

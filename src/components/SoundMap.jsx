@@ -52,7 +52,18 @@ export default function SoundMap({ game, song, request }) {
     game.status === "ready" || (game.status === "finished" && game.clipEnd)
       ? items.find((a) => a.id === selected) || items[0]
       : null;
-  const current = preview || active,
+  // 技法间空档：间隙不超过 2 秒时用上一个技法补位，避免文案与动画频繁闪跳。
+  let carry = null;
+  if (!active && !preview && game.time > 0) {
+    let prev = null,
+      next = null;
+    for (const a of items) {
+      if (a.end <= game.time && (!prev || a.end > prev.end)) prev = a;
+      if (a.start >= game.time && (!next || a.start < next.start)) next = a;
+    }
+    if (prev && next && next.start - prev.end <= 2) carry = prev;
+  }
+  const current = preview || active || carry,
     tech = current
       ? techFor(
           request?.annotationId === current.id
@@ -99,13 +110,13 @@ export default function SoundMap({ game, song, request }) {
       >
         <div className="atlas-description">
           <span className="small-label">
-            {tech ? "一句话理解技法" : "继续聆听原声"}
+            {tech ? "一句话理解技法" : "演奏进行中"}
           </span>
-          <h2>{tech?.name || "听听这一段"}</h2>
+          <h2>{tech?.name || "演奏中…"}</h2>
           <p>
             {current
               ? tech.description
-              : "这一段没有人工技法标注。让原声继续流动，等待下一个动作。"}
+              : "演奏仍在继续，让原声继续流动，等待下一个技法动作出现。"}
           </p>
           <div className="technique-tags">
             {current ? (
@@ -129,7 +140,7 @@ export default function SoundMap({ game, song, request }) {
                 )}
               </>
             ) : (
-              <span>无技法标注 · 原声流动中</span>
+              <span>演奏中 · 原声流动</span>
             )}
           </div>
           <button
@@ -173,6 +184,7 @@ export default function SoundMap({ game, song, request }) {
               technique={tech.id}
               repeat={current.repeatCount}
               dynamics={current.dynamics}
+              duration={Math.max(0.5, current.end - current.start)}
               progress={progress}
               playing={running(game.status)}
             />
@@ -214,9 +226,9 @@ export default function SoundMap({ game, song, request }) {
           </>
         ) : (
           <div className="cues-rest">
-            <b>静候下一段</b>
+            <b>演奏中…</b>
             <p>
-              当前没有技法标注。继续聆听原声的强弱与走向，等待下一个动作出现。
+              演奏仍在继续。留意原声的强弱与走向，等待下一个技法动作出现。
             </p>
           </div>
         )}

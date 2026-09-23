@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { X } from "lucide-react";
 import { original as bakedSong } from "../game/data.js";
 import { useKnowledge } from "../knowledge/KnowledgeContext.jsx";
-import { clock } from "./Elements.jsx";
+import { clock, shortTech } from "./Elements.jsx";
 import baseFeatures from "../data/features.json";
 
 // 毫秒精度时钟：00:02.396
@@ -134,7 +134,7 @@ export default function BakedReview({ onClose }) {
                 </span>
               );
             })}
-          {events.map((ev) => {
+          {events.map((ev, i) => {
             const t = techFor(ev.technique);
             const sustained = ev.end != null && ev.end > ev.anchor;
             return (
@@ -158,6 +158,16 @@ export default function BakedReview({ onClose }) {
                   }}
                   title={`${t.name} @ ${ev.anchor.toFixed(3)}s`}
                 />
+                {/* 竖排两字短名，双行错位避让密集打点。 */}
+                <b
+                  className={`baked-elabel row-${i % 2} ${ev.id === selectedId ? "active" : ""}`}
+                  style={{
+                    left: `${(ev.anchor / duration) * 100}%`,
+                    "--tech": t.color,
+                  }}
+                >
+                  {shortTech(t.name)}
+                </b>
               </span>
             );
           })}

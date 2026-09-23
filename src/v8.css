@@ -2055,7 +2055,7 @@
 .baked-tick {
   position: absolute;
   top: 0;
-  bottom: 30px;
+  bottom: 56px;
   width: 2px;
   margin-left: -1px;
   background: var(--tech);
@@ -2147,7 +2147,7 @@
 .baked-span {
   position: absolute;
   top: 0;
-  bottom: 30px;
+  bottom: 56px;
   background: color-mix(in srgb, var(--tech) 16%, transparent);
   border-left: 2px solid var(--tech);
   pointer-events: none;
@@ -2205,7 +2205,58 @@
 .baked-legacy summary:hover {
   color: var(--text);
 }
+/* —— 时间轴技法短名标签（标注台 + 固化弹窗共用同一视觉语言） ——
+   竖排两字、技法同色；双行错位避让密集打点；窄屏隐藏防糊。 */
+.baked-elabel,
+.studio-elabel {
+  position: absolute;
+  writing-mode: vertical-rl;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  line-height: 1;
+  color: var(--tech);
+  transform: translateX(-50%);
+  pointer-events: none;
+  user-select: none;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
+  z-index: 2;
+}
+.baked-elabel.row-0,
+.studio-elabel.row-0 {
+  bottom: 2px;
+}
+.baked-elabel.row-1,
+.studio-elabel.row-1 {
+  bottom: 27px;
+}
+.baked-elabel.active,
+.studio-elabel.active {
+  font-size: 11px;
+  text-shadow: 0 0 6px var(--tech), 0 1px 3px rgba(0, 0, 0, 0.85);
+}
+.studio-elabel.rejected {
+  opacity: 0.35;
+}
+/* 长按区间色块足够宽时，名称直接横排在色块内部。 */
+.studio-band-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  white-space: nowrap;
+  font-style: normal;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #f2efe2;
+}
 @media (max-width: 640px) {
+  .baked-elabel,
+  .studio-elabel {
+    display: none; /* 窄屏打点太密，标签会糊成一片，只留刻度。 */
+  }
   .baked-events {
     grid-template-columns: 1fr;
   }

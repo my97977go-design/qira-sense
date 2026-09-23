@@ -23,7 +23,7 @@ import {
   isHumanEvent,
 } from "../learning/learningConfig.js";
 import { useKnowledge } from "../knowledge/KnowledgeContext.jsx";
-import { Eyebrow, clock } from "./Elements.jsx";
+import { Eyebrow, clock, shortTech } from "./Elements.jsx";
 import PulseLine from "./PulseLine.jsx";
 import BakedReview from "./BakedReview.jsx";
 import baseFeatures from "../data/features.json";
@@ -716,29 +716,45 @@ export default function AnnotationStudio({ song, onSaved }) {
             <i key={i} style={{ height: `${h}%` }} />
           ))}
         </div>
-        {events.map((ev) => {
+        {events.map((ev, i) => {
           const tech = techFor(ev.technique);
           const s = ev.start ?? ev.anchor;
           const en = ev.end ?? ev.anchor;
+          const wide = en - s >= 1; // 足够宽的长按区间才在色块内横排名称。
           return (
-            <span
-              key={ev.id}
-              className={`studio-event-band ${ev.reviewStatus} ${
-                ev.id === selectedId ? "active" : ""
-              }`}
-              style={{
-                left: `${(s / duration) * 100}%`,
-                width: `${Math.max(0.18, ((en - s) / duration) * 100)}%`,
-                "--tech": tech.color,
-              }}
-              title={`${tech.name} @ ${ev.anchor.toFixed(3)}s · ${STATUS_LABEL[ev.reviewStatus]}`}
-              onPointerDown={(e) => e.stopPropagation()}
-              onClick={(e) => {
-                e.stopPropagation();
-                setSelectedId(ev.id);
-                seekTo(ev.anchor);
-              }}
-            />
+            <span key={ev.id} className="studio-event-slot">
+              <span
+                className={`studio-event-band ${ev.reviewStatus} ${
+                  ev.id === selectedId ? "active" : ""
+                }`}
+                style={{
+                  left: `${(s / duration) * 100}%`,
+                  width: `${Math.max(0.18, ((en - s) / duration) * 100)}%`,
+                  "--tech": tech.color,
+                }}
+                title={`${tech.name} @ ${ev.anchor.toFixed(3)}s · ${STATUS_LABEL[ev.reviewStatus]}`}
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedId(ev.id);
+                  seekTo(ev.anchor);
+                }}
+              >
+                {wide && <em className="studio-band-label">{tech.name}</em>}
+              </span>
+              {/* 竖排两字短名，双行错位避让密集打点。 */}
+              <b
+                className={`studio-elabel row-${i % 2} ${ev.reviewStatus} ${
+                  ev.id === selectedId ? "active" : ""
+                }`}
+                style={{
+                  left: `${(s / duration) * 100}%`,
+                  "--tech": tech.color,
+                }}
+              >
+                {shortTech(tech.name)}
+              </b>
+            </span>
           );
         })}
         {selected && Number.isFinite(selected.start) && (
