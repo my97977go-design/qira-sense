@@ -1909,7 +1909,7 @@
   transition: transform 0.25s ease;
 }
 
-/* ===== 教师维护区：复制固化数据（节拍+技法） ===== */
+/* ===== 教师维护区：复制固化数据（节拍 / 技法 分开复制） ===== */
 .teacher-bake {
   display: grid;
   gap: 10px;
@@ -1919,12 +1919,24 @@
   border-radius: 14px;
   background: rgba(20, 26, 20, 0.45);
 }
+.teacher-bake-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
 .teacher-bake .secondary-button {
   justify-self: start;
 }
 .teacher-bake small {
   color: rgba(226, 232, 208, 0.62);
   line-height: 1.6;
+}
+.bake-src {
+  font-weight: 500;
+  color: #9fd08a;
+}
+.bake-src.local {
+  color: #e8b04b;
 }
 .teacher-bake textarea {
   width: 100%;
@@ -1937,6 +1949,190 @@
   border: 1px solid rgba(191, 199, 168, 0.16);
   border-radius: 10px;
   resize: vertical;
+}
+
+/* ===== 标注台：固化数据核对弹窗（只读） ===== */
+.baked-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 24px 14px;
+  background: rgba(6, 9, 6, 0.74);
+  backdrop-filter: blur(6px);
+}
+.baked-modal {
+  width: min(980px, 96vw);
+  max-height: 88vh;
+  overflow-y: auto;
+  padding: 18px 20px 22px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
+}
+.baked-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.baked-head h3 {
+  margin: 0 0 4px;
+  font-family: var(--serif);
+  font-size: 19px;
+  font-weight: 500;
+  color: #eae8de;
+}
+.baked-head small {
+  display: block;
+  max-width: 720px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.baked-curve {
+  position: relative;
+  height: 170px;
+  overflow: hidden;
+  background: rgba(8, 12, 8, 0.62);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.baked-curve > svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: calc(100% - 30px);
+}
+.baked-curve-fill {
+  fill: rgba(227, 195, 148, 0.12);
+  stroke: rgba(227, 195, 148, 0.55);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+.baked-waveform {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 8px;
+  bottom: 30px;
+  display: flex;
+  align-items: flex-end;
+  gap: 1px;
+  opacity: 0.45;
+  pointer-events: none;
+}
+.baked-waveform i {
+  flex: 1;
+  min-width: 1px;
+  background: rgba(217, 215, 188, 0.5);
+  border-radius: 1px 1px 0 0;
+}
+.baked-band {
+  position: absolute;
+  bottom: 0;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  white-space: nowrap;
+  padding: 0 3px;
+  font-size: 10px;
+  line-height: 1;
+  color: #f2efe2;
+  background: color-mix(in srgb, var(--tech) 35%, transparent);
+  border: 1px solid var(--tech);
+  border-radius: 5px 5px 0 0;
+  cursor: pointer;
+}
+.baked-band.active {
+  background: color-mix(in srgb, var(--tech) 62%, transparent);
+  z-index: 2;
+}
+.baked-tick {
+  position: absolute;
+  top: 0;
+  bottom: 30px;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--tech);
+  opacity: 0.9;
+  pointer-events: none;
+}
+.baked-legend {
+  display: grid;
+  gap: 6px;
+  margin-top: 14px;
+}
+.baked-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 7px 10px;
+  text-align: left;
+  font: inherit;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  cursor: pointer;
+}
+.baked-row:hover {
+  background: rgba(217, 215, 188, 0.05);
+}
+.baked-row.active {
+  border-color: var(--line);
+  background: rgba(217, 215, 188, 0.08);
+}
+.baked-row b {
+  flex: 0 0 190px;
+  color: #eae8de;
+  font-weight: 500;
+}
+.baked-row small {
+  flex: 0 0 118px;
+  font-family: var(--latin);
+  font-size: 12px;
+  letter-spacing: 0.4px;
+}
+.baked-row i {
+  flex: 1;
+  font-style: normal;
+  color: var(--muted);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.baked-row em {
+  flex: 0 0 auto;
+  font-style: normal;
+  font-size: 11px;
+  color: var(--gold);
+}
+.baked-note {
+  margin: 6px 2px 0;
+  padding-top: 10px;
+  border-top: 1px dashed var(--line);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+@media (max-width: 640px) {
+  .baked-row {
+    flex-wrap: wrap;
+    row-gap: 2px;
+  }
+  .baked-row b {
+    flex-basis: 100%;
+  }
+  .baked-row i {
+    flex-basis: 100%;
+  }
 }
 
 /* 长按即录入的按钮与时间轴：禁止选字与长按呼出菜单 */

@@ -1,6 +1,6 @@
 import { RankingHint } from "./Ranking.jsx";
 import { ArrowRight, Play, Disc3 } from "lucide-react";
-import { LANES, activeAt, makeChart } from "../game/chart.js";
+import { LANES, activeLayerAt, makeChart } from "../game/chart.js";
 import { Eyebrow, Score, Feedback, formatBpm } from "./Elements.jsx";
 import Highway from "./Highway.jsx";
 import { useKnowledge } from "../knowledge/KnowledgeContext.jsx";
@@ -9,7 +9,7 @@ import beatPreview from "../data/beat-preview.json";
 export default function Challenge({ game, song }) {
   const { techFor } = useKnowledge();
   const preview = makeChart(song, game.beat || beatPreview),
-    active = activeAt(song, game.time),
+    active = activeLayerAt(song, game.time),
     tech = active ? techFor(active.technique) : null;
   return (
     <section className="play-page challenge-page">

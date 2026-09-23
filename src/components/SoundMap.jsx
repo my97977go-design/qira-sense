@@ -6,7 +6,7 @@ import {
   MoveUpRight,
   AudioLines,
 } from "lucide-react";
-import { activeAt } from "../game/chart.js";
+import { activeLayerAt, trustedHumanEvents } from "../game/chart.js";
 import { kindOf } from "../learning/learningConfig.js";
 import { Eyebrow, clock, running } from "./Elements.jsx";
 import TechniqueRibbon from "../visuals/TechniqueRibbon.jsx";
@@ -15,23 +15,42 @@ import { useKnowledge } from "../knowledge/KnowledgeContext.jsx";
 import features from "../data/features.json";
 export default function SoundMap({ game, song, request }) {
   const { library, techFor } = useKnowledge();
+  // 打完即生效：存在被采信的人工事件时，地图由事件层驱动；否则回退旧区间层。
+  const trusted = trustedHumanEvents(song);
+  const items = trusted.length
+    ? trusted.map((e) => ({
+        id: e.id,
+        technique: e.technique,
+        start: Number.isFinite(e.start)
+          ? e.start
+          : Math.max(0, e.anchor - 0.35),
+        end: Number.isFinite(e.end)
+          ? e.end
+          : Math.min(song.duration, e.anchor + 0.35),
+        label: e.label || techFor(e.technique).name,
+        dynamics:
+          song.annotations.find((a) => a.id === e.annotationId)?.dynamics ||
+          "steady",
+        repeatCount: 1,
+      }))
+    : song.annotations.filter((a) => a.enabled !== false);
   const TECHNIQUES = library.entries.filter((t) =>
-    song.annotations.some((a) => a.technique === t.id),
+    items.some((a) => a.technique === t.id),
   );
   useEffect(() => {
     if (request) {
-      const a = song.annotations.find((a) => a.id === request.annotationId);
-      if (a) {
-        setSelected(a.id);
-        game.seek(a.start, a.end);
+      const item = items.find((a) => a.id === request.annotationId);
+      if (item) {
+        setSelected(item.id);
+        game.seek(item.start, item.end);
       }
     }
   }, [request]);
   const [selected, setSelected] = useState(null),
-    active = activeAt(song, game.time);
+    active = activeLayerAt(song, game.time);
   const preview =
     game.status === "ready" || (game.status === "finished" && game.clipEnd)
-      ? song.annotations.find((a) => a.id === selected) || song.annotations[0]
+      ? items.find((a) => a.id === selected) || items[0]
       : null;
   const current = preview || active,
     tech = current
@@ -52,7 +71,12 @@ export default function SoundMap({ game, song, request }) {
     : 0;
   const select = (a) => {
     setSelected(a.id);
-    game.seek(a.start, a.end);
+    // 点状事件窗口太短时，向两侧扩到约 2 秒，便于试听上下文。
+    const pad = Math.max(0, (2 - (a.end - a.start)) / 2);
+    game.seek(
+      Math.max(0, a.start - pad),
+      Math.min(song.duration, a.end + pad),
+    );
   };
   return (
     <section className="play-page map-page">
@@ -199,9 +223,7 @@ export default function SoundMap({ game, song, request }) {
       </div>
       <div className="technique-library">
         {TECHNIQUES.map((t, i) => {
-          const a = song.annotations.find(
-            (a) => a.technique === t.id && a.enabled !== false,
-          );
+          const a = items.find((a) => a.technique === t.id);
           return (
             <button
               key={t.id}
@@ -219,7 +241,12 @@ export default function SoundMap({ game, song, request }) {
       </div>
       <div className="timeline-heading">
         <span>
-          完整声音地图 <small>{song.annotations.length} 个标注区间</small>
+          完整声音地图{" "}
+          <small>
+            {trusted.length
+              ? `${trusted.length} 个人工打点事件`
+              : `${items.length} 个标注区间`}
+          </small>
         </span>
         <button
           className="text-button"
@@ -248,9 +275,7 @@ export default function SoundMap({ game, song, request }) {
           })}
         </div>
         <div className="annotation-track">
-          {song.annotations
-            .filter((a) => a.enabled !== false)
-            .map((a) => (
+          {items.map((a) => (
               <button
                 key={a.id}
                 title={`${a.start}–${a.end} 秒 · ${a.label}`}

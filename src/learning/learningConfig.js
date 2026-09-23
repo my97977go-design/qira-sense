@@ -27,6 +27,11 @@ export const REFERENCE_TECHNIQUES = [];
 export const supportsAnnotation = (id) =>
   id in TECHNIQUE_KIND || REFERENCE_TECHNIQUES.includes(id);
 export const FINAL_TEST_TOLERANCE_MS = 180;
+// 统一采信谓词：教师人工打点即生效，无需逐条复核。
+// 只要事件是人工产生（human-millisecond / human-confirmed）且未被明确拒绝，即作为正式数据。
+export const HUMAN_EVENT_PRECISIONS = new Set(["human-millisecond", "human-confirmed"]);
+export const isHumanEvent = (e) =>
+  e.reviewStatus !== "rejected" && HUMAN_EVENT_PRECISIONS.has(e.timingPrecision);
 export const finalTestPassRule = {
   metric: "overallF1",
   threshold: 0.7,

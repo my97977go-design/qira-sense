@@ -7,12 +7,18 @@ import {
   Download,
   Drum,
   Copy,
+  RotateCcw,
 } from "lucide-react";
 import AnnotationStudio from "./AnnotationStudio.jsx";
 import TechniqueLibrary from "./TechniqueLibrary.jsx";
 import BeatCalibration from "./BeatCalibration.jsx";
 import { LEARNER_KEY } from "../learning/learningConfig.js";
-import { loadCalibration } from "../game/beatCalibration.js";
+import {
+  loadCalibration,
+  clearCalibration,
+  BEAT_CALIBRATION_KEY,
+} from "../game/beatCalibration.js";
+import { clearLocalSong, hasLocalSong } from "../game/data.js";
 import { Eyebrow } from "./Elements.jsx";
 
 // 教师维护区：标注台 / 技法库维护 / 学习数据。
@@ -29,22 +35,60 @@ export default function TeacherMaintenance({ game, song, onSongSaved }) {
   const [notice, setNotice] = useState("");
   const [bakeJson, setBakeJson] = useState("");
   const [bakeNotice, setBakeNotice] = useState("");
-  // 固化导出：把当前生效的节拍标定 + 技法标注打包成一份 JSON 复制到剪贴板，
-  // 交给开发者回填进代码（beat-builtin.json / song.json），即在任何设备、
-  // 任何域名（临时隧道 / localhost / 正式站）永久生效，不必重新标注。
-  const bake = async () => {
-    const payload = {
-      kind: "qira-bake-v1",
-      exportedAt: new Date().toISOString(),
-      beat: loadCalibration(),
-      song,
-    };
+  // 本机生效数据来源：localStorage 覆盖（教师本机最新保存）> 随代码固化。
+  // 声音地图、游戏、Final Test 全部读这条链路，本机覆盖会“挡住”固化数据。
+  const [source] = useState(() => ({
+    songLocal: hasLocalSong(),
+    beatLocal: (() => {
+      try {
+        return !!localStorage.getItem(BEAT_CALIBRATION_KEY);
+      } catch {
+        return false;
+      }
+    })(),
+  }));
+  const restoreBaked = () => {
+    const parts = [];
+    if (source.songLocal) parts.push("技法标注");
+    if (source.beatLocal) parts.push("节拍标定");
+    if (!parts.length) {
+      setBakeNotice("本机没有覆盖数据，声音地图与游戏已经在用固化数据。");
+      return;
+    }
+    if (
+      !window.confirm(
+        `将删除本机的${parts.join("、")}覆盖，恢复为随代码固化的数据（声音地图、游戏同步生效）。页面将刷新。`,
+      )
+    )
+      return;
+    clearLocalSong();
+    clearCalibration();
+    location.reload();
+  };
+  // 固化导出：节拍与技法分成两个按钮，各自弄好一个就单独复制一份 JSON，
+  // 交给开发者回填进代码（节拍 → beat-builtin.json，技法 → song.json），
+  // 即在任何设备、任何域名（临时隧道 / localhost / 正式站）永久生效。
+  const bake = async (which) => {
+    const payload =
+      which === "beat"
+        ? {
+            kind: "qira-bake-beat-v1",
+            exportedAt: new Date().toISOString(),
+            beat: loadCalibration(),
+          }
+        : {
+            kind: "qira-bake-song-v1",
+            exportedAt: new Date().toISOString(),
+            song,
+          };
     const json = JSON.stringify(payload);
     setBakeJson(json);
     try {
       await navigator.clipboard.writeText(json);
       setBakeNotice(
-        "节拍+技法数据已复制到剪贴板：粘贴发给开发者即可永久固化。",
+        which === "beat"
+          ? "节拍固化数据已复制到剪贴板：粘贴发给开发者即可永久固化。"
+          : "技法标注固化数据已复制到剪贴板：粘贴发给开发者即可永久固化。",
       );
     } catch {
       setBakeNotice("自动复制失败：长按下方文本框，全选后手动复制。");
@@ -96,12 +140,43 @@ export default function TeacherMaintenance({ game, song, onSongSaved }) {
         </button>
       </div>
       <div className="teacher-bake">
-        <button className="secondary-button" onClick={bake}>
-          <Copy size={15} /> 复制固化数据（节拍+技法）
-        </button>
+        <div className="teacher-bake-buttons">
+          <button
+            className="secondary-button"
+            onClick={() => bake("beat")}
+            title="复制当前生效的节拍标定，回填 beat-builtin.json"
+          >
+            <Drum size={15} /> 复制固化数据（节拍）
+          </button>
+          <button
+            className="secondary-button"
+            onClick={() => bake("song")}
+            title="复制当前技法标注事件，回填 song.json"
+          >
+            <Copy size={15} /> 复制固化数据（技法）
+          </button>
+          <button
+            className="secondary-button"
+            onClick={restoreBaked}
+            title="删除本机 localStorage 覆盖，声音地图与游戏恢复为随代码固化的数据"
+          >
+            <RotateCcw size={15} /> 恢复固化数据（清除本机覆盖）
+          </button>
+        </div>
         <small>
-          标完一遍后点这里：把当前生效的节拍与技法标注复制出来发给开发者回填进代码。
+          节拍与技法分开复制：弄好一个就点对应按钮，把 JSON 粘贴发给开发者回填进代码。
           之后任何设备、任何地址（临时隧道 / localhost / 正式站）都直接带数据，不必重标。
+        </small>
+        <small>
+          本机当前生效：技法 —{" "}
+          <b className={source.songLocal ? "bake-src local" : "bake-src"}>
+            {source.songLocal ? "本机覆盖（挡住固化）" : "固化 song.json"}
+          </b>
+          ；节拍 —{" "}
+          <b className={source.beatLocal ? "bake-src local" : "bake-src"}>
+            {source.beatLocal ? "本机覆盖（挡住固化）" : "固化 beat-builtin"}
+          </b>
+          。声音地图与游戏始终读取本机数据，保存/标定过就会覆盖固化版本；点上方按钮可一键恢复。
         </small>
         {bakeJson && (
           <textarea

@@ -1,4 +1,5 @@
 import { beatGrid } from "../audio/beat.js";
+import { isHumanEvent } from "../learning/learningConfig.js";
 // 4 条点技法轨（D F J K）+ 3 条长按轨（1 2 3）。
 // 点技法：瞬时动作，到达判定线时点按；长按技法：持续状态，光条带长度，按住即可。
 export const LANES = [
@@ -61,6 +62,50 @@ export const activeAt = (song, time) =>
   song.annotations.find(
     (a) => a.enabled !== false && time >= a.start && time < a.end,
   );
+// 被采信的教师人工事件（打完即生效），按锚点排序；挂到已禁用区间的事件剔除。
+export function trustedHumanEvents(song) {
+  const enabledIds = new Set(
+    song.annotations.filter((a) => a.enabled !== false).map((a) => a.id),
+  );
+  return (song.events || [])
+    .filter(
+      (e) =>
+        isHumanEvent(e) &&
+        laneOf(e.technique) >= 0 &&
+        (!e.annotationId || enabledIds.has(e.annotationId)),
+    )
+    .sort((a, b) => a.anchor - b.anchor);
+}
+// 当前时间的活动技法层：事件优先（人工打点即生效），事件层为空时回退区间层。
+// 返回对象兼容旧 activeAt 字段：technique / start / end / dynamics / repeatCount。
+export function activeLayerAt(song, time) {
+  const events = trustedHumanEvents(song);
+  if (events.length) {
+    const byId = new Map(
+      song.annotations.filter((a) => a.enabled !== false).map((a) => [a.id, a]),
+    );
+    for (const e of events) {
+      const start = Number.isFinite(e.start) ? e.start : e.anchor;
+      // 点状事件给出约半秒的展示活动窗；长按事件用录入的起止。
+      const end = Number.isFinite(e.end) ? e.end : start + 0.5;
+      if (time >= start && time < end) {
+        const a = e.annotationId ? byId.get(e.annotationId) : null;
+        return {
+          source: "event",
+          id: e.id,
+          technique: e.technique,
+          label: e.label || (a ? a.label : LANES[laneOf(e.technique)].name),
+          start,
+          end,
+          dynamics: a ? a.dynamics : "steady",
+          repeatCount: 1,
+        };
+      }
+    }
+    return undefined;
+  }
+  return activeAt(song, time);
+}
 export function makeChart(song, beat, mode = "challenge") {
   const beats = beatGrid(beat, song.duration);
   if (mode === "rhythm")
@@ -73,90 +118,102 @@ export function makeChart(song, beat, mode = "challenge") {
       label: "拍",
       index: i,
     }));
-  // v3：若某区间关联了教师确认的毫秒级事件，直接使用真实事件锚点。
-  const confirmedEventsByAnnotation = {};
-  for (const e of song.events || [])
-    if (
-      e.reviewStatus === "confirmed" &&
-      (e.timingPrecision === "human-millisecond" ||
-        e.timingPrecision === "human-confirmed") &&
-      e.annotationId
-    )
-      (confirmedEventsByAnnotation[e.annotationId] ||= []).push(e);
+  // v3：人工打点即生效——只要存在被采信的事件，谱面完全由事件层驱动；
+  // 事件层为空（例如刚从 v2 迁移、尚未标注）时才回退到秒级区间编排。
+  const annotations = song.annotations.filter((a) => a.enabled !== false);
+  const trusted = trustedHumanEvents(song);
   const notes = [];
-  for (const a of song.annotations.filter((a) => a.enabled !== false)) {
-    const lane = laneOf(a.technique);
-    if (lane < 0) continue;
-    const confirmed = confirmedEventsByAnnotation[a.id];
-    const label = a.label.split(" ")[0].replace(/连续.*|四次.*|，.*/g, "");
-    if (LANES[lane].hold) {
-      // 持续性技法：整段一条长按光条（头 = 起点，尾 = 终点），重在识别不重掐表。
-      const spans = confirmed?.length
-        ? confirmed.slice().sort((x, y) => x.anchor - y.anchor)
-        : [{ anchor: a.start, end: a.end, id: `${a.id}-hold` }];
-      spans.forEach((s, i) =>
+  if (trusted.length) {
+    const byId = new Map(annotations.map((a) => [a.id, a]));
+    const counters = new Map();
+    for (const e of trusted) {
+      const lane = laneOf(e.technique);
+      const a = e.annotationId ? byId.get(e.annotationId) : null;
+      const label =
+        e.label ||
+        (a
+          ? a.label.split(" ")[0].replace(/连续.*|四次.*|，.*/g, "")
+          : LANES[lane].name);
+      const key = e.annotationId || "__orphan__";
+      const i = counters.get(key) || 0;
+      counters.set(key, i + 1);
+      if (LANES[lane].hold) {
+        // 持续性技法：事件录入的起止即长按光条的头尾。
         notes.push({
-          id: s.id,
-          time: s.anchor,
-          end: s.end ?? a.end,
+          id: e.id,
+          time: e.anchor,
+          end: Number.isFinite(e.end) ? e.end : a ? a.end : e.anchor,
+          lane,
+          kind: "hold",
+          technique: e.technique,
+          label,
+          annotationId: a ? a.id : null,
+          eventId: e.id,
+          timingSource: e.timingPrecision,
+          dynamics: a ? a.dynamics : "steady",
+          indexInAnnotation: i,
+        });
+      } else {
+        notes.push({
+          id: e.id,
+          time: e.anchor,
+          lane,
+          kind: "technique",
+          technique: e.technique,
+          label,
+          annotationId: a ? a.id : null,
+          eventId: e.id,
+          timingSource: e.timingPrecision,
+          dynamics: a ? a.dynamics : undefined,
+        });
+      }
+    }
+  } else {
+    for (const a of annotations) {
+      const lane = laneOf(a.technique);
+      if (lane < 0) continue;
+      const label = a.label.split(" ")[0].replace(/连续.*|四次.*|，.*/g, "");
+      if (LANES[lane].hold) {
+        // 持续性技法：整段一条长按光条（头 = 起点，尾 = 终点），重在识别不重掐表。
+        notes.push({
+          id: `${a.id}-hold`,
+          time: a.start,
+          end: a.end,
           lane,
           kind: "hold",
           technique: a.technique,
           label,
           annotationId: a.id,
-          eventId: confirmed?.length ? s.id : undefined,
-          timingSource: confirmed?.length
-            ? "human-millisecond"
-            : "manual-interval-span",
+          timingSource: "manual-interval-span",
           dynamics: a.dynamics,
-          indexInAnnotation: i,
+          indexInAnnotation: 0,
+        });
+        continue;
+      }
+      let times;
+      if (a.repeatCount > 1)
+        times = Array.from(
+          { length: a.repeatCount },
+          (_, i) => a.start + (i * (a.end - a.start)) / a.repeatCount,
+        );
+      else times = [a.start];
+      times.forEach((time, i) =>
+        notes.push({
+          id: `${a.id}-${i}`,
+          time,
+          lane,
+          kind: "technique",
+          technique: a.technique,
+          label,
+          annotationId: a.id,
+          timingSource:
+            a.repeatCount > 1
+              ? "legacy-derived-subdivision"
+              : "manual-interval-start",
+          dynamics: a.dynamics,
         }),
       );
-      continue;
     }
-    if (confirmed?.length) {
-      confirmed
-        .sort((x, y) => x.anchor - y.anchor)
-        .forEach((e, i) =>
-          notes.push({
-            id: `${e.id}`,
-            time: e.anchor,
-            lane,
-            kind: "technique",
-            technique: e.technique,
-            label,
-            annotationId: a.id,
-            eventId: e.id,
-            timingSource: "human-millisecond",
-            dynamics: a.dynamics,
-            indexInAnnotation: i,
-          }),
-        );
-      continue;
-    }
-    let times;
-    if (a.repeatCount > 1)
-      times = Array.from(
-        { length: a.repeatCount },
-        (_, i) => a.start + (i * (a.end - a.start)) / a.repeatCount,
-      );
-    else times = [a.start];
-    times.forEach((time, i) =>
-      notes.push({
-        id: `${a.id}-${i}`,
-        time,
-        lane,
-        kind: "technique",
-        technique: a.technique,
-        label,
-        annotationId: a.id,
-        timingSource:
-          a.repeatCount > 1
-            ? "legacy-derived-subdivision"
-            : "manual-interval-start",
-        dynamics: a.dynamics,
-      }),
-    );
   }
   // Bridge the spaces between gestures. Neutral notes never claim a technique label.
   beats.forEach((time, i) => {

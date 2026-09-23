@@ -11,6 +11,8 @@ import {
   judgementHold,
   summarize,
   activeAt,
+  activeLayerAt,
+  trustedHumanEvents,
   LANES,
 } from "../src/game/chart.js";
 import { validateSong } from "../src/game/data.js";
@@ -64,10 +66,13 @@ test("recording, measurements and manual intervals retain their source identity"
   assert.equal(song.annotations[6].label, "滑柔");
   assert.equal(song.annotations[12].technique, "return-glide");
 });
-test("three groups of four preserve all repetitions with honest legacy subdivision provenance", () => {
-  const chart = makeChart(song, beat);
+test("event-less song preserves repetitions with honest legacy subdivision provenance", () => {
+  // 事件层为空（例如刚迁移的 v2）时才使用旧区间等分编排。
+  const noEvents = structuredClone(song);
+  noEvents.events = [];
+  const chart = makeChart(noEvents, beat);
   for (const id of ["manual-01", "manual-04", "manual-11"]) {
-    const a = song.annotations.find((a) => a.id === id),
+    const a = noEvents.annotations.find((a) => a.id === id),
       notes = chart.filter((n) => n.annotationId === id);
     assert.equal(notes.length, 4);
     assert.ok(
@@ -89,20 +94,52 @@ test("three groups of four preserve all repetitions with honest legacy subdivisi
   assert.equal(holds.length, 4);
   assert.ok(holds.every((n) => n.kind === "hold" && n.end > n.time));
 });
+test("baked human events (orphans included) drive the chart in full", () => {
+  // 教师打点即生效：固化数据里的 41 个事件（全部 needs-review、未挂区间）都必须成为谱面音符。
+  const chart = makeChart(song, beat);
+  const trusted = chart.filter((n) => n.eventId);
+  assert.equal(trustedHumanEvents(song).length, song.events.length);
+  assert.equal(trusted.length, trustedHumanEvents(song).length);
+  assert.ok(trusted.every((n) => n.timingSource === "human-confirmed"));
+  // 人工事件存在时不再出现旧区间等分音（揉弦那类回退产物）。
+  assert.equal(
+    chart.some((n) => n.timingSource === "legacy-derived-subdivision"),
+    false,
+  );
+  // 打音长按用录入起止；活动层同样由事件层优先给出。
+  const dayin = trusted.filter((n) => n.technique === "dayin");
+  assert.equal(dayin.length, 3);
+  assert.ok(dayin.every((n) => n.kind === "hold" && n.end > n.time));
+  assert.equal(activeLayerAt(song, 6).technique, "dayin");
+  assert.equal(activeLayerAt(song, 6).source, "event");
+  assert.equal(activeLayerAt(song, 6).id, "evt-mue1az3v-4-kx5");
+});
 test("continuous chart has no answer windows or gaps caused by feedback", () => {
   const chart = makeChart(song, beat);
   assert.ok(chart.length >= 100);
   assert.equal(new Set(chart.map((n) => n.id)).size, chart.length);
+  // 人工事件会遮住相邻脉搏，空档上限按节拍网格推导，而不是写死秒数。
+  const grid = beatGrid(beat, song.duration);
+  const maxBeatGap = Math.max(...grid.slice(1).map((t, i) => t - grid[i]));
   for (let i = 0; i < chart.length; i++) {
     const n = chart[i];
     assert.ok(
       n.time >= 0 && n.time < song.duration && n.lane >= 0 && n.lane < 7,
     );
-    if (i) assert.ok(n.time - chart[i - 1].time <= 0.76);
+    if (i) assert.ok(n.time - chart[i - 1].time <= maxBeatGap * 3);
     if (n.kind === "technique" || n.kind === "hold") {
-      const a = song.annotations.find((a) => a.id === n.annotationId);
-      assert.ok(n.time >= a.start && n.time < a.end);
-      if (n.kind === "hold") assert.ok(n.end > n.time && n.end <= a.end + 1e-6);
+      const a = n.annotationId
+        ? song.annotations.find((a) => a.id === n.annotationId)
+        : null;
+      if (a) {
+        assert.ok(n.time >= a.start && n.time < a.end);
+        if (n.kind === "hold")
+          assert.ok(n.end > n.time && n.end <= a.end + 1e-6);
+      } else {
+        // 教师直接打点、未挂区间的事件：用事件自身的起止，仍需落在曲内。
+        assert.ok(n.time < song.duration);
+        if (n.kind === "hold") assert.ok(n.end > n.time && n.end <= song.duration);
+      }
     } else assert.equal(n.technique, undefined);
   }
   assert.equal(activeAt(song, 6).dynamics, "diminuendo");
@@ -120,10 +157,14 @@ test("rhythm means one target per estimated beat, including manual BPM overrides
   assert.deepEqual(beatGrid({ bpm: NaN }, 40), []);
 });
 test("timing uses the correct lane, finds the nearest unresolved note, and never repeats a hit", () => {
-  const notes = makeChart(song, beat).filter(
+  // 匹配机制用例：用等分编排的密集音符验证，与事件层是否接管无关。
+  const noEvents = structuredClone(song);
+  noEvents.events = [];
+  const notes = makeChart(noEvents, beat).filter(
       (n) => n.annotationId === "manual-01",
     ),
     done = {};
+  assert.equal(notes.length, 4);
   assert.equal(closestNote(notes, done, 1, 1), null);
   for (const note of notes) {
     assert.equal(closestNote(notes, done, note.time, 0).id, note.id);

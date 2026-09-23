@@ -199,6 +199,26 @@ export function loadSong() {
   return original;
 }
 
+// 恢复固化数据：删除本机两代标注键，下次载入即回退到随代码的 song.json。
+export function clearLocalSong() {
+  try {
+    localStorage.removeItem(DATA_KEY);
+    localStorage.removeItem(LEGACY_KEY);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// 本机是否存在标注覆盖（存在则 loadSong 不会用到固化数据）。
+export function hasLocalSong() {
+  try {
+    return !!(localStorage.getItem(DATA_KEY) || localStorage.getItem(LEGACY_KEY));
+  } catch {
+    return false;
+  }
+}
+
 export function saveSong(song) {
   try {
     localStorage.setItem(DATA_KEY, JSON.stringify(song));

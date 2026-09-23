@@ -16,13 +16,14 @@ const song = JSON.parse(
 song.schemaVersion = 3;
 song.events = [];
 
-test("selectOfficialEvents only trusts confirmed human-millisecond events", () => {
+test("selectOfficialEvents trusts human events (打完即生效), excludes legacy/rejected", () => {
   const base = structuredClone(song);
   // 没有事件 → 非正式，列出全部缺失技法。
   const none = selectOfficialEvents(base);
   assert.equal(none.official, false);
   assert.deepEqual(none.missingTechniques, FINAL_TECHNIQUES);
-  // 只有 needs-review / legacy 事件 → 仍非正式。
+  // 打完即生效：人工打点（needs-review + human 精度）即被采信；
+  // 旧版等分与已拒绝事件仍不采信。
   base.events = [
     {
       id: "e1",
@@ -40,11 +41,24 @@ test("selectOfficialEvents only trusts confirmed human-millisecond events", () =
       reviewStatus: "confirmed",
       annotationId: null,
     },
+    {
+      id: "e3",
+      technique: "up-glide",
+      anchor: 20,
+      timingPrecision: "human-confirmed",
+      reviewStatus: "rejected",
+      annotationId: null,
+    },
   ];
-  assert.equal(selectOfficialEvents(base).official, false);
-  // 加入确认的毫秒级事件 → 正式，缺失技法正确更新。
+  const first = selectOfficialEvents(base);
+  assert.equal(first.official, true);
+  assert.deepEqual(
+    first.events.map((e) => e.id),
+    ["e1"],
+  );
+  // 精修确认（毫秒级）→ 继续采信，覆盖技法增加。
   base.events.push({
-    id: "e3",
+    id: "e4",
     technique: "up-glide",
     anchor: 1.2,
     timingPrecision: "human-millisecond",
@@ -53,21 +67,22 @@ test("selectOfficialEvents only trusts confirmed human-millisecond events", () =
   });
   const official = selectOfficialEvents(base);
   assert.equal(official.official, true);
-  assert.equal(official.events.length, 1);
+  assert.equal(official.events.length, 2);
   assert.ok(!official.missingTechniques.includes("up-glide"));
-  assert.ok(official.missingTechniques.includes("vibrato"));
+  assert.ok(!official.missingTechniques.includes("vibrato"));
+  assert.ok(official.missingTechniques.includes("dayin"));
   // 关联已禁用区间的事件被排除。
   const disabled = structuredClone(base);
   disabled.annotations[0].enabled = false;
   disabled.events.push({
-    id: "e4",
+    id: "e5",
     technique: "down-glide",
     anchor: 1.5,
     timingPrecision: "human-millisecond",
     reviewStatus: "confirmed",
     annotationId: disabled.annotations[0].id,
   });
-  assert.equal(selectOfficialEvents(disabled).events.length, 1);
+  assert.equal(selectOfficialEvents(disabled).events.length, 2);
 });
 
 test("scoreFinalTest matches events within tolerance and computes P/R/F1", () => {

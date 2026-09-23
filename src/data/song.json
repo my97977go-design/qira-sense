@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "id": "daqiban-upload-001",
   "title": "大起板",
   "instrument": "高音板胡",
@@ -12,7 +12,7 @@
   "duration": 38.877347,
   "sampleRate": 44100,
   "channels": 1,
-  "annotationVersion": 2,
+  "annotationVersion": 3,
   "annotationSource": "human-workbook",
   "reviewStatus": "confirmed",
   "labelMode": "human",
@@ -40,7 +40,8 @@
         "timeText": "0:00:01-0:00:02",
         "label": "上滑连续四次，需要有四次上滑展示"
       },
-      "timingPrecision": "interval-seconds"
+      "timingPrecision": "interval-seconds",
+      "layer": "technique"
     },
     {
       "id": "manual-02",
@@ -60,7 +61,8 @@
         "timeText": "0:00:02-0:00:06",
         "label": "揉弦 渐强"
       },
-      "timingPrecision": "interval-seconds"
+      "timingPrecision": "interval-seconds",
+      "layer": "technique"
     },
     {
       "id": "manual-03",
@@ -80,7 +82,8 @@
         "timeText": "0:00:06-0:00:09",
         "label": "揉弦 渐弱"
       },
-      "timingPrecision": "interval-seconds"
+      "timingPrecision": "interval-seconds",
+      "layer": "technique"
     },
     {
       "id": "manual-04",
@@ -100,7 +103,8 @@
         "timeText": "0:00:10-0:00:13",
         "label": "下滑四次"
       },
-      "timingPrecision": "interval-seconds"
+      "timingPrecision": "interval-seconds",
+      "layer": "technique"
     },
     {
       "id": "manual-05",
@@ -120,7 +124,8 @@
         "timeText": "0:00:13-0:00:16",
         "label": "揉弦 渐强"
       },
-      "timingPrecision": "interval-seconds"
+      "timingPrecision": "interval-seconds",
+      "layer": "technique"
     },
     {
       "id": "manual-06",
@@ -140,7 +145,8 @@
         "timeText": "0:00:16-0:00:18",
         "label": "揉弦 渐弱"
       },
-      "timingPrecision": "interval-seconds"
+      "timingPrecision": "interval-seconds",
+      "layer": "technique"
     },
     {
       "id": "manual-07",
@@ -160,7 +166,8 @@
         "timeText": "0:00:21-0:00:22",
         "label": "滑柔"
       },
-      "timingPrecision": "interval-seconds"
+      "timingPrecision": "interval-seconds",
+      "layer": "technique"
     },
     {
       "id": "manual-08",
@@ -180,7 +187,8 @@
         "timeText": "0:00:23-0:00:24",
         "label": "滑柔"
       },
-      "timingPrecision": "interval-seconds"
+      "timingPrecision": "interval-seconds",
+      "layer": "technique"
     },
     {
       "id": "manual-09",
@@ -200,7 +208,8 @@
         "timeText": "0:00:25-0:00:26",
         "label": "滑柔"
       },
-      "timingPrecision": "interval-seconds"
+      "timingPrecision": "interval-seconds",
+      "layer": "technique"
     },
     {
       "id": "manual-10",
@@ -220,7 +229,8 @@
         "timeText": "0:00:26-0:00:27",
         "label": "滑柔"
       },
-      "timingPrecision": "interval-seconds"
+      "timingPrecision": "interval-seconds",
+      "layer": "technique"
     },
     {
       "id": "manual-11",
@@ -240,7 +250,8 @@
         "timeText": "0:00:27-0:00:28",
         "label": "上滑连续四次，需要有四次上滑展示"
       },
-      "timingPrecision": "interval-seconds"
+      "timingPrecision": "interval-seconds",
+      "layer": "technique"
     },
     {
       "id": "manual-12",
@@ -260,7 +271,8 @@
         "timeText": "0:00:32-0:00:33",
         "label": "打音"
       },
-      "timingPrecision": "interval-seconds"
+      "timingPrecision": "interval-seconds",
+      "layer": "technique"
     },
     {
       "id": "manual-13",
@@ -280,7 +292,8 @@
         "timeText": "0:00:34-0:00:35",
         "label": "回滑音"
       },
-      "timingPrecision": "interval-seconds"
+      "timingPrecision": "interval-seconds",
+      "layer": "technique"
     }
   ],
   "rhythmTargets": [],
@@ -444,5 +457,386 @@
   "annotationWorkbook": {
     "filename": "大起板 技法时间点.xlsx",
     "sha256": "9f288c28c4573bce0947af9f94547bbfa3e2f99b36d3d14a56759e9a064f23ae"
-  }
+  },
+  "events": [
+    {
+      "id": "evt-mue1alqc-0-rf5",
+      "annotationId": null,
+      "technique": "up-glide",
+      "anchor": 0.851,
+      "timingPrecision": "human-confirmed",
+      "reviewStatus": "needs-review",
+      "label": ""
+    },
+    {
+      "id": "evt-mue1amfe-1-b1y",
+      "annotationId": null,
+      "technique": "up-glide",
+      "anchor": 1.3,
+      "timingPrecision": "human-confirmed",
+      "reviewStatus": "needs-review",
+      "label": ""
+    },
+    {
+      "id": "evt-mue1amy5-2-roe",
+      "annotationId": null,
+      "technique": "up-glide",
+      "anchor": 1.64,
+      "timingPrecision": "human-confirmed",
+      "reviewStatus": "needs-review",
+      "label": ""
+    },
+    {
+      "id": "evt-mue1anh7-3-a0p",
+      "annotationId": null,
+      "technique": "up-glide",
+      "anchor": 1.985,
+      "timingPrecision": "human-confirmed",
+      "reviewStatus": "needs-review",
+      "label": ""
+    },
+    {
+      "id": "evt-mue1az3v-4-kx5",
+      "annotationId": null,
+      "technique": "dayin",
+      "anchor": 2.396,
+      "start": 2.396,
+      "end": 9.52,
+      "timingPrecision": "human-confirmed",
+      "reviewStatus": "needs-review",
+      "label": ""
+    },
+    {
+      "id": "evt-mue1azkz-5-d4p",
+      "annotationId": null,
+      "technique": "up-glide",
+      "anchor": 9.825,
+      "timingPrecision": "human-confirmed",
+      "reviewStatus": "needs-review",
+      "label": ""
+    },
+    {
+      "id": "evt-mue1b13n-8-o2q",
+      "annotationId": null,
+      "technique": "down-glide",
+      "anchor": 10.811,
+      "timingPrecision": "human-confirmed",
+      "reviewStatus": "needs-review",
+      "label": ""
+    },
+    {
+      "id": "evt-mue1b1mc-9-rbc",
+      "annotationId": null,
+      "technique": "down-glide",
+      "anchor": 11.145,
+      "timingPrecision": "human-confirmed",
+      "reviewStatus": "needs-review",
+      "label": ""
+    },
+    {
+      "id": "evt-mue1b26l-a-lut",
+      "annotationId": null,
+      "technique": "down-glide",
+      "anchor": 11.511,
+      "timingPrecision": "human-confirmed",
+      "reviewStatus": "needs-review",
+      "label": ""
+    },
+    {
+      "id": "evt-mue1be57-b-2zs",
+      "annotationId": null,
+      "technique": "up-glide",
+      "anchor": 10.202,
+      "timingPrecision": "human-confirmed",
+      "reviewStatus": "needs-review",
+      "label": ""
+    },
+    {
+      "id": "evt-mue1beej-c-ffw",
+      "annotationId": null,
+      "technique": "down-glide",
+      "anchor": 10.372,
+      "timingPrecision": "human-confirmed",
+      "reviewStatus": "needs-review",
+      "label": ""
+    },
+    {
+      "id": "evt-mue1c0fo-e-mow",
+      "annotationId": null,
+      "technique": "down-glide",
+      "anchor": 11.872,
+      "timingPrecision": "human-confirmed",
+      "reviewStatus": "needs-review",
+      "label": ""
+    },
+    {
+      "id": "evt-mue1ccfe-f-tje",
+      "annotationId": null,
+      "technique": "dayin",
+      "anchor": 12.752,
+      "start": 12.752,
+      "end": 18,
+      "timingPrecision": "human-confirmed",
+      "reviewStatus": "needs-review",
+      "label": ""
+    },
+    {
+      "id": "evt-mue1cmmc-g-4gt",
+      "annotationId": null,
+      "technique": "down-glide",
+      "anchor": 19.331,
+      "timingPrecision": "human-confirmed",
+      "reviewStatus": "needs-review",
+      "label": ""
+    },
+    {
+      "id": "evt-mue1cndg-h-zys",
+      "annotationId": null,
+      "technique": "down-glide",
+      "anchor": 19.817,
+      "timingPrecision": "human-confirmed",
+      "reviewStatus": "needs-review",
+      "label": ""
+    },
+    {
+      "id": "evt-mue1cygt-j-ddv",
+      "annotationId": null,
+      "technique": "return-glide",
+      "anchor": 20.24,
+      "timingPrecision": "human-confirmed",
+      "reviewStatus": "needs-review",
+      "label": ""
+    },
+    {
+      "id": "evt-mue1cz27-k-szt",
+      "annotationId": null,
+      "technique": "return-glide",
+      "anchor": 20.625,
+      "timingPrecision": "human-confirmed",
+      "reviewStatus": "needs-review",
+      "label": ""
+    },
+    {
+      "id": "evt-mue1dho3-n-shj",
+      "annotationId": null,
+      "technique": "return-glide",
+      "anchor": 21.799,
+      "timingPrecision": "human-confirmed",
+      "reviewStatus": "needs-review",
+      "label": ""
+    },
+    {
+      "id": "evt-mue1di63-o-58a",
+      "annotationId": null,
+      "technique": "return-glide",
+      "anchor": 22.124,
+      "timingPrecision": "human-confirmed",
+      "reviewStatus": "needs-review",
+      "label": ""
+    },
+    {
+      "id": "evt-mue1dlms-p-sy4",
+      "annotationId": null,
+      "technique": "up-glide",
+      "anchor": 23.038,
+      "timingPrecision": "human-confirmed",
+      "reviewStatus": "needs-review",
+      "label": ""
+    },
+    {
+      "id": "evt-mue1e5nf-s-76p",
+      "annotationId": null,
+      "technique": "up-glide",
+      "anchor": 23.811,
+      "timingPrecision": "human-confirmed",
+      "reviewStatus": "needs-review",
+      "label": ""
+    },
+    {
+      "id": "evt-mue1e6v8-t-tx6",
+      "annotationId": null,
+      "technique": "up-glide",
+      "anchor": 24.596,
+      "timingPrecision": "human-confirmed",
+      "reviewStatus": "needs-review",
+      "label": ""
+    },
+    {
+      "id": "evt-mue1ea9h-u-j6c",
+      "annotationId": null,
+      "technique": "up-glide",
+      "anchor": 25.356,
+      "timingPrecision": "human-confirmed",
+      "reviewStatus": "needs-review",
+      "label": ""
+    },
+    {
+      "id": "evt-mue1eako-v-psw",
+      "annotationId": null,
+      "technique": "up-glide",
+      "anchor": 25.562,
+      "timingPrecision": "human-confirmed",
+      "reviewStatus": "needs-review",
+      "label": ""
+    },
+    {
+      "id": "evt-mue1eohn-y-g21",
+      "annotationId": null,
+      "technique": "up-glide",
+      "anchor": 26.194,
+      "timingPrecision": "human-confirmed",
+      "reviewStatus": "needs-review",
+      "label": ""
+    },
+    {
+      "id": "evt-mue1eprv-z-noi",
+      "annotationId": null,
+      "technique": "up-glide",
+      "anchor": 27.024,
+      "timingPrecision": "human-confirmed",
+      "reviewStatus": "needs-review",
+      "label": ""
+    },
+    {
+      "id": "evt-mue1er1o-10-9al",
+      "annotationId": null,
+      "technique": "up-glide",
+      "anchor": 27.849,
+      "timingPrecision": "human-confirmed",
+      "reviewStatus": "needs-review",
+      "label": ""
+    },
+    {
+      "id": "evt-mue1evj3-12-pq8",
+      "annotationId": null,
+      "technique": "up-glide",
+      "anchor": 28.534,
+      "timingPrecision": "human-confirmed",
+      "reviewStatus": "needs-review",
+      "label": ""
+    },
+    {
+      "id": "evt-mue1evto-13-ttd",
+      "annotationId": null,
+      "technique": "up-glide",
+      "anchor": 28.723,
+      "timingPrecision": "human-confirmed",
+      "reviewStatus": "needs-review",
+      "label": ""
+    },
+    {
+      "id": "evt-mue1f58c-15-wz2",
+      "annotationId": null,
+      "technique": "up-glide",
+      "anchor": 29.293,
+      "timingPrecision": "human-confirmed",
+      "reviewStatus": "needs-review",
+      "label": ""
+    },
+    {
+      "id": "evt-mue1f5w5-16-ke0",
+      "annotationId": null,
+      "technique": "up-glide",
+      "anchor": 29.724,
+      "timingPrecision": "human-confirmed",
+      "reviewStatus": "needs-review",
+      "label": ""
+    },
+    {
+      "id": "evt-mue1f6fq-17-gwn",
+      "annotationId": null,
+      "technique": "up-glide",
+      "anchor": 30.073,
+      "timingPrecision": "human-confirmed",
+      "reviewStatus": "needs-review",
+      "label": ""
+    },
+    {
+      "id": "evt-mue1fkyk-19-shy",
+      "annotationId": null,
+      "technique": "down-glide",
+      "anchor": 31.075,
+      "timingPrecision": "human-confirmed",
+      "reviewStatus": "needs-review",
+      "label": ""
+    },
+    {
+      "id": "evt-mue1fqy3-1a-zrc",
+      "annotationId": null,
+      "technique": "up-glide",
+      "anchor": 32.368,
+      "timingPrecision": "human-confirmed",
+      "reviewStatus": "needs-review",
+      "label": ""
+    },
+    {
+      "id": "evt-mue1frjz-1b-ew",
+      "annotationId": null,
+      "technique": "up-glide",
+      "anchor": 32.762,
+      "timingPrecision": "human-confirmed",
+      "reviewStatus": "needs-review",
+      "label": ""
+    },
+    {
+      "id": "evt-mue1fs4y-1c-qnq",
+      "annotationId": null,
+      "technique": "up-glide",
+      "anchor": 33.137,
+      "timingPrecision": "human-confirmed",
+      "reviewStatus": "needs-review",
+      "label": ""
+    },
+    {
+      "id": "evt-mue1fwpp-1d-io7",
+      "annotationId": null,
+      "technique": "dayin",
+      "anchor": 33.875,
+      "start": 33.875,
+      "end": 34.641,
+      "timingPrecision": "human-confirmed",
+      "reviewStatus": "needs-review",
+      "label": ""
+    },
+    {
+      "id": "evt-mue1g7cz-1f-nv3",
+      "annotationId": null,
+      "technique": "return-glide",
+      "anchor": 35.673,
+      "timingPrecision": "human-confirmed",
+      "reviewStatus": "needs-review",
+      "label": ""
+    },
+    {
+      "id": "evt-mue1gbzo-1g-l1h",
+      "annotationId": null,
+      "technique": "down-glide",
+      "anchor": 36.647,
+      "timingPrecision": "human-confirmed",
+      "reviewStatus": "needs-review",
+      "label": ""
+    },
+    {
+      "id": "evt-mue1ghiy-1h-45t",
+      "annotationId": null,
+      "technique": "down-glide",
+      "anchor": 37.269,
+      "timingPrecision": "human-confirmed",
+      "reviewStatus": "needs-review",
+      "label": ""
+    },
+    {
+      "id": "evt-mue1h1vv-1i-mjo",
+      "annotationId": null,
+      "technique": "vibrato",
+      "anchor": 38.073,
+      "start": 38.073,
+      "end": 38.753,
+      "timingPrecision": "human-confirmed",
+      "reviewStatus": "needs-review",
+      "label": ""
+    }
+  ],
+  "migrationNote": "由 v2 秒级区间标注自动迁移。毫秒级事件需教师在标注台中精修确认。",
+  "validationWarnings": []
 }

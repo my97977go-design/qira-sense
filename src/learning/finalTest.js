@@ -1,6 +1,6 @@
-import { FINAL_TECHNIQUES, FINAL_TEST_TOLERANCE_MS } from "./learningConfig.js";
+import { FINAL_TECHNIQUES, FINAL_TEST_TOLERANCE_MS, isHumanEvent } from "./learningConfig.js";
 
-// Final Test 只使用教师确认的毫秒级事件作为正式答案。
+// Final Test 使用教师人工打点事件作为正式答案（打完即生效，无需逐条复核）。
 // 返回 { events, official, missingTechniques }：
 // official=false 表示当前数据不足以正式计分，页面应降级为演示模式。
 export function selectOfficialEvents(song) {
@@ -10,8 +10,7 @@ export function selectOfficialEvents(song) {
   const events = (song.events || [])
     .filter(
       (e) =>
-        e.reviewStatus === "confirmed" &&
-        e.timingPrecision === "human-millisecond" &&
+        isHumanEvent(e) &&
         (!e.annotationId || enabledIds.has(e.annotationId)),
     )
     .sort((a, b) => a.anchor - b.anchor);

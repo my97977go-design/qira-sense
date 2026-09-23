@@ -11,6 +11,7 @@ import {
   Ban,
   AlertTriangle,
   RotateCcw,
+  Eye,
 } from "lucide-react";
 import { transport } from "../audio/transport.js";
 import { COUNT_IN_SECONDS, detectLeadSilence } from "../audio/leadIn.js";
@@ -19,26 +20,30 @@ import {
   FINAL_TECHNIQUES,
   TAP_TECHNIQUES,
   kindOf,
+  isHumanEvent,
 } from "../learning/learningConfig.js";
 import { useKnowledge } from "../knowledge/KnowledgeContext.jsx";
 import { Eyebrow, clock } from "./Elements.jsx";
 import PulseLine from "./PulseLine.jsx";
+import BakedReview from "./BakedReview.jsx";
 import baseFeatures from "../data/features.json";
 
 // 实时打点标注台：整曲播放（可 0.1×/0.5×/0.75× 慢速精标），
 // 点技法（1—5）听到瞬间点按钮或按键打点；长按技法（6—8）按住记起点、松手记终点。
-// 打点默认 human-confirmed / needs-review；逐条精修锚点后
-// 「确认（毫秒级）」才成为快速听辨测试的正式答案。
+// 打完即生效：人工打点即保存为已确认事件，直接驱动听辨测试、谱面与声音地图，
+// 无需逐条复核；「确认（毫秒级）」仅用于精修后升级精度标记。
 const RATES = [0.1, 0.5, 0.75, 1];
 const PRECISION_LABEL = {
   "human-millisecond": "毫秒级人工",
   "human-confirmed": "人工确认",
   "legacy-derived-subdivision": "旧版等分",
 };
+// 打完即生效：confirmed 与 needs-review 都直接驱动全局，仅 rejected 被排除。
+// 徽标不再用「待复核」暗示需要额外操作，避免让教师误以为必须逐条确认才生效。
 const STATUS_LABEL = {
-  confirmed: "已确认",
-  "needs-review": "待复核",
-  rejected: "已拒绝",
+  confirmed: "已生效",
+  "needs-review": "已生效",
+  rejected: "已排除",
 };
 const KIND_TECHNIQUE = {
   "up-glide": "up-glide",
@@ -75,6 +80,7 @@ export default function AnnotationStudio({ song, onSaved }) {
   const [flash, setFlash] = useState(null);
   const [drag, setDrag] = useState(null);
   const [version, setVersion] = useState(0);
+  const [showBaked, setShowBaked] = useState(false);
   const past = useRef([]);
   const future = useRef([]);
   const timelineRef = useRef(null);
@@ -247,7 +253,7 @@ export default function AnnotationStudio({ song, onSaved }) {
       technique,
       anchor: t,
       timingPrecision: "human-confirmed",
-      reviewStatus: "needs-review",
+      reviewStatus: "confirmed",
       label: "",
     };
     apply([...eventsRef.current, ev]);
@@ -281,7 +287,7 @@ export default function AnnotationStudio({ song, onSaved }) {
       start,
       end,
       timingPrecision: "human-confirmed",
-      reviewStatus: "needs-review",
+      reviewStatus: "confirmed",
       label: "",
     };
     apply([...eventsRef.current, ev]);
@@ -328,6 +334,16 @@ export default function AnnotationStudio({ song, onSaved }) {
       if (e.code === "Space") {
         e.preventDefault();
         if (!e.repeat) togglePlay();
+        return;
+      }
+      // 选中事件后按 Backspace / Delete 直接删除（可 Ctrl+Z 撤销）
+      if (
+        (e.code === "Backspace" || e.code === "Delete") &&
+        selectedId &&
+        !e.repeat
+      ) {
+        e.preventDefault();
+        removeSelected();
       }
     };
     const keyUp = (e) => {
@@ -360,6 +376,29 @@ export default function AnnotationStudio({ song, onSaved }) {
       timingPrecision: "human-millisecond",
       reviewStatus: "confirmed",
     });
+  // 删除当前选中的事件（编辑器按钮 / Backspace 键共用），可撤销。
+  const removeSelected = () => {
+    if (!selected) return;
+    apply(events.filter((e) => e.id !== selected.id));
+    setSelectedId(null);
+    setNotice("已删除选中事件，可 Ctrl+Z 撤销。");
+  };
+  // 一键清空全部标注事件（仅改工作副本，不保存则不写入浏览器存储），可撤销。
+  const clearAll = () => {
+    if (!events.length) {
+      setNotice("当前没有可删除的标注事件。");
+      return;
+    }
+    if (
+      !window.confirm(
+        `确定删除全部 ${events.length} 个标注事件吗？删除后可用 Ctrl+Z 撤销，点击「保存 v3」前不会写入。`,
+      )
+    )
+      return;
+    apply([]);
+    setSelectedId(null);
+    setNotice("已清空全部标注事件（可 Ctrl+Z 撤销，需保存后才会写入）。");
+  };
 
   // —— 时间轴拖拽（锚点 / 起止）——
   const timeAt = (clientX) => {
@@ -407,7 +446,7 @@ export default function AnnotationStudio({ song, onSaved }) {
     );
   };
 
-  // —— 机器候选（仅参考）——
+  // —— 机器候选（教师点击「采纳」即人工背书，采纳后即刻生效）——
   const adoptCandidate = (c) => {
     const ev = normalize({
       id: newId(),
@@ -417,14 +456,12 @@ export default function AnnotationStudio({ song, onSaved }) {
       end: Number(c.end),
       anchor: (Number(c.start) + Number(c.end)) / 2,
       timingPrecision: "human-confirmed",
-      reviewStatus: "needs-review",
+      reviewStatus: "confirmed",
       label: `机器候选 ${c.kind} · score ${Number(c.score || 0).toFixed(2)}`,
     });
     apply([...events, ev]);
     setSelectedId(ev.id);
-    setNotice(
-      "已采纳为事件。请精修锚点并「确认（毫秒级）」后才能作为正式测验答案。",
-    );
+    setNotice("已采纳为事件并即刻生效，可继续精修锚点。");
   };
 
   // —— 保存 / 导出 ——
@@ -466,11 +503,7 @@ export default function AnnotationStudio({ song, onSaved }) {
   };
 
   // —— 派生显示 ——
-  const officialEvents = events.filter(
-    (e) =>
-      e.reviewStatus === "confirmed" &&
-      e.timingPrecision === "human-millisecond",
-  );
+  const officialEvents = events.filter((e) => isHumanEvent(e));
   const covered = new Set(officialEvents.map((e) => e.technique));
   const sortedEvents = [...events].sort((a, b) => a.anchor - b.anchor);
   const bars = useMemo(
@@ -501,8 +534,8 @@ export default function AnnotationStudio({ song, onSaved }) {
           <h2>边听边打点，生成毫秒级事件库</h2>
           <p>
             播放中点击技法按钮（或按 1—8 键）即刻记录时间点，同一秒可连续多次；
-            0.1× 慢速便于毫秒级精标。打点需逐条精修并「确认（毫秒级）」后才成为
-            快速听辨测试正式答案。
+            0.1× 慢速便于毫秒级精标。打完即生效：保存后事件立即用于
+            快速听辨测试、游戏谱面与声音地图，无需逐条复核。
           </p>
         </div>
         <div className="studio-toolbar">
@@ -523,6 +556,23 @@ export default function AnnotationStudio({ song, onSaved }) {
             onClick={redo}
           >
             <Redo2 size={17} />
+          </button>
+          <button
+            className="secondary-button"
+            onClick={() => setShowBaked(true)}
+            title="只读查看随代码固化的技法标注（song.json）"
+          >
+            <Eye size={15} />
+            查看固化标注
+          </button>
+          <button
+            className="secondary-button"
+            onClick={clearAll}
+            disabled={!events.length}
+            title="一键删除全部标注事件（可 Ctrl+Z 撤销，保存前不写入）"
+          >
+            <Trash2 size={15} />
+            清空标注
           </button>
           <button className="primary-button" onClick={save}>
             <Save size={15} />
@@ -851,15 +901,10 @@ export default function AnnotationStudio({ song, onSaved }) {
                   <Ban size={14} />
                   Reject
                 </button>
-                <button
-                  className="text-button"
-                  onClick={() => {
-                    apply(events.filter((e) => e.id !== selected.id));
-                    setSelectedId(null);
-                  }}
-                >
+                <button className="text-button" onClick={removeSelected}>
                   <Trash2 size={14} />
                   删除
+                  <kbd>Backspace</kbd>
                 </button>
               </div>
             </div>
@@ -867,8 +912,11 @@ export default function AnnotationStudio({ song, onSaved }) {
             <div className="studio-hint">
               <p>
                 流程：播放（可 0.1×）→ 听到技法瞬间点按钮 / 按 1—5 键打点 →
-                暂停 → 在下方列表逐条选中，用 ±1ms 微调锚点并「确认（毫秒级）」。
-                时间轴可点击，也可按住来回拖动定位。
+                长按技法按住—松手记起止 → 「保存 v3」即刻全局生效。
+                选中事件可用 ±1ms 微调锚点（「确认（毫秒级）」仅升级精度标记）。
+                时间轴可点击，也可按住来回拖动定位。选中事件后按
+                Backspace / Delete 可快速删除；顶部「清空标注」一键删除全部事件，
+                两者都可用 Ctrl+Z 撤销。
               </p>
               <p className="studio-coverage">
                 正式测验可用事件：{officialEvents.length} 个 · 覆盖技法{" "}
@@ -972,6 +1020,8 @@ export default function AnnotationStudio({ song, onSaved }) {
           </div>
         </aside>
       </div>
+
+      {showBaked && <BakedReview onClose={() => setShowBaked(false)} />}
     </section>
   );
 }
