@@ -39,9 +39,9 @@ export default function useRanking(game) {
       if (game.status !== "paused") setOpened(false);
       return;
     }
-    // V8：排行榜只服务既有游戏（节奏、提示挑战）。
+    // 排行榜只服务既有游戏（跟拍节奏、技法工坊、下落式彩蛋）。
     // Adaptive Learning / Final Test 绝不自动提交，也不弹昵称窗口。
-    if (!["rhythm", "challenge"].includes(game.screen)) return;
+    if (!["rhythm", "challenge", "falling"].includes(game.screen)) return;
     if (seen.current === game.summary) return;
     seen.current = game.summary;
     const prior = read();
@@ -93,7 +93,11 @@ export default function useRanking(game) {
       game.status === "finished" ? previous : (history[game.screen] ?? null),
     open: () => {
       if (game.status === "playing") game.togglePause();
-      setMode(["rhythm", "challenge"].includes(game.screen) ? game.screen : "rhythm");
+      setMode(
+        ["rhythm", "challenge", "falling"].includes(game.screen)
+          ? game.screen
+          : "rhythm",
+      );
       setOpened(true);
       refresh();
     },

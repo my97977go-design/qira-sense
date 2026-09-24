@@ -15,7 +15,7 @@
       "instrument": "高音板胡",
       "songId": "daqiban-upload-001",
       "status": "available",
-      "description": "用同一段原声，从跟上节奏到无提示识别技法。四个入口全部开放。",
+      "description": "用同一段原声，从跟上节奏到无提示识别技法。三个阶段全部开放。",
       "entries": [
         {
           "id": "rhythm",
@@ -26,24 +26,16 @@
           "outcome": "能跟随音乐的基本脉搏"
         },
         {
-          "id": "soundMap",
-          "number": 2,
-          "title": "声音地图",
-          "subtitle": "看见声音如何变化",
-          "objective": "完整《大起板》连续播放，技法随时间切换，观察真实音高曲线。",
-          "outcome": "能把声音变化与技法对应起来"
-        },
-        {
           "id": "learning",
-          "number": 3,
-          "title": "技法训练",
-          "subtitle": "把不同声音真正记住",
-          "objective": "自适应挑选语境片段，反复聆听并识别六种技法。",
-          "outcome": "能独立辨认每种技法的声音特征"
+          "number": 2,
+          "title": "技法工坊",
+          "subtitle": "教练带你一段一段练",
+          "objective": "分阶段认识每种技法：先听、再跟，练习内容不断累计，直到走完全部 41 处技法。",
+          "outcome": "能跟上原声，完成整曲的技法动作"
         },
         {
           "id": "finalTest",
-          "number": 4,
+          "number": 3,
           "title": "快速听辨测试",
           "subtitle": "没有提示，你能听出多少？",
           "objective": "整曲连续播放、无任何提示，实时点出听到的技法。三档游戏难度：困难 / 中等 / 容易（慢速）。",
@@ -52,7 +44,7 @@
       ],
       "secondary": [
         {
-          "id": "challenge",
+          "id": "falling",
           "title": "光弦坠落 · 与光同行",
           "subtitle": "带提示的下落式挑战 · 隐藏彩蛋关卡"
         }

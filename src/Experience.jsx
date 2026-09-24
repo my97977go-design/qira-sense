@@ -18,7 +18,7 @@ import TechniqueLibrary from "./components/TechniqueLibrary.jsx";
 import Rhythm from "./components/Rhythm.jsx";
 import SoundMap from "./components/SoundMap.jsx";
 import Challenge from "./components/Challenge.jsx";
-import AdaptiveLearning from "./components/AdaptiveLearning.jsx";
+import FallingChallenge from "./components/FallingChallenge.jsx";
 import FinalListeningTest from "./components/FinalListeningTest.jsx";
 import TeacherMaintenance from "./components/TeacherMaintenance.jsx";
 import Settings from "./components/Settings.jsx";
@@ -41,19 +41,6 @@ export default function App() {
     current = useRef(null);
   const enterLesson = (id) => {
     // V8：核心入口直接导航，不再有解锁前置。
-    const entryScreen = {
-      rhythm: "rhythm",
-      soundMap: "map",
-      learning: "learning",
-      finalTest: "finalTest",
-      challenge: "challenge",
-    };
-    if (entryScreen[id]) {
-      setActiveLesson(null);
-      setMapRequest(null);
-      baseGame.navigate(entryScreen[id]);
-      return;
-    }
     const lesson = course.lessons.find((l) => l.id === id);
     if (!lesson) return;
     setActiveLesson(id);
@@ -63,7 +50,7 @@ export default function App() {
   };
   const navigate = (screen) => {
     if (
-      ["home", "map", "library", "learning", "finalTest", "teacher"].includes(
+      ["home", "map", "library", "challenge", "falling", "finalTest", "teacher"].includes(
         screen,
       )
     ) {
@@ -142,7 +129,7 @@ export default function App() {
         g.togglePause();
         return;
       }
-      if (g.screen === "challenge") {
+      if (g.screen === "challenge" || g.screen === "falling") {
         const i = ["KeyD", "KeyF", "KeyJ", "KeyK"].indexOf(e.code);
         if (i >= 0) {
           e.preventDefault();
@@ -181,7 +168,7 @@ export default function App() {
     window.addEventListener("keydown", key);
     const keyUp = (e) => {
       const g = current.current;
-      if (g.screen !== "challenge") return;
+      if (g.screen !== "challenge" && g.screen !== "falling") return;
       const h = ["Digit1", "Digit2", "Digit3"].indexOf(e.code);
       if (h >= 0) g.holdEnd(4 + h);
     };
@@ -228,7 +215,6 @@ export default function App() {
             >
               <span>0{i + 1}</span>
               {item.label}
-              {item.id === "challenge" && <i />}
             </button>
           ))}
         </nav>
@@ -272,8 +258,6 @@ export default function App() {
         <div className="screen-swap" key={game.screen}>
           {game.screen === "home" ? (
             <Home game={game} song={song} muted={muted} />
-          ) : game.screen === "learning" ? (
-            <AdaptiveLearning game={game} song={song} />
           ) : game.screen === "finalTest" ? (
             <FinalListeningTest game={game} song={song} />
           ) : game.screen === "teacher" ? (
@@ -290,6 +274,9 @@ export default function App() {
               )}{" "}
               {game.screen === "challenge" && (
                 <Challenge game={game} song={song} />
+              )}{" "}
+              {game.screen === "falling" && (
+                <FallingChallenge game={game} song={song} />
               )}
               {game.screen === "library" && (
                 <TechniqueLibrary
@@ -321,7 +308,7 @@ export default function App() {
           </span>
         </div>
         <div className="footer-center">
-          {["home", "library", "learning", "finalTest", "teacher"].includes(
+          {["home", "library", "finalTest", "teacher"].includes(
             game.screen,
           ) ? (
             <span>中国音乐审美体验 · 交互式教学</span>

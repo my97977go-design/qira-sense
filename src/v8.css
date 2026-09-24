@@ -826,15 +826,48 @@
 .lesson-card.final-entry {
   border-color: rgba(227, 195, 148, 0.45);
 }
-/* 第 4 入口（快速听辨测试）：整行横条，体现终极测评的分量 */
-.lesson-path .lesson-card.final-entry {
-  grid-column: 1 / -1;
+/* 阶段一（节奏热身）：左侧竖长条，高度涵盖右侧两个横向按钮 */
+.lesson-path .lesson-card.tall-entry {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+}
+.lesson-path .lesson-card.tall-entry .lesson-bottom {
+  margin-top: auto;
+}
+/* 阶段二 / 三（技法工坊、快速听辨）：右列横向按钮 */
+.lesson-path .lesson-card.side-entry {
+  grid-column: 2;
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 22px;
+  gap: 8px 22px;
   flex-wrap: wrap;
-  padding: 22px 28px;
+  padding: 20px 28px;
+}
+.lesson-path .lesson-card.side-entry .lesson-top {
+  width: 100%;
+}
+.lesson-path .lesson-card.side-entry .lesson-step {
+  margin-top: 0;
+}
+.lesson-path .lesson-card.side-entry h3 {
+  margin-top: 0;
+  font-size: 28px;
+  white-space: normal;
+}
+.lesson-path .lesson-card.side-entry > p {
+  margin-top: 0;
+  min-height: 0;
+  flex: 1;
+  min-width: 240px;
+}
+.lesson-path .lesson-card.side-entry .lesson-bottom {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+  margin-left: auto;
+}
+.lesson-path .lesson-card.final-entry.side-entry {
   background: linear-gradient(
     120deg,
     rgba(227, 195, 148, 0.1),
@@ -842,24 +875,18 @@
     transparent
   );
 }
-.lesson-path .lesson-card.final-entry .lesson-step {
-  margin-top: 0;
-}
-.lesson-path .lesson-card.final-entry h3 {
-  margin-top: 0;
-  font-size: 28px;
-}
-.lesson-path .lesson-card.final-entry > p {
-  margin-top: 0;
-  min-height: 0;
-  flex: 1;
-  min-width: 240px;
-}
-.lesson-path .lesson-card.final-entry .lesson-bottom {
-  margin-top: 0;
-  padding-top: 0;
-  border-top: none;
-  margin-left: auto;
+@media (max-width: 850px) {
+  /* 单列时不再跨行，回到普通卡片流 */
+  .lesson-path .lesson-card.tall-entry {
+    grid-column: auto;
+    grid-row: auto;
+  }
+  .lesson-path .lesson-card.side-entry {
+    grid-column: auto;
+  }
+  .lesson-path .lesson-card.tall-entry .lesson-bottom {
+    margin-top: 20px;
+  }
 }
 /* —— 彩蛋关卡：与 01—04 同级，但更醒目（流光边框 + 呼吸光晕）—— */
 .lesson-path .lesson-card.egg-entry {
@@ -2281,7 +2308,9 @@
 .studio-timeline,
 .studio-event-band,
 .studio-handle,
-.lane-pads button {
+.lane-pads button,
+.coach-pads button,
+.compare-card {
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
@@ -2305,7 +2334,453 @@
   .arm-button::before,
   .round-play-invite .round-play-disc,
   .round-play-invite .round-play-disc::before,
-  .round-play-invite > span {
+  .round-play-invite > span,
+  .compare-card.playing,
+  .coach-result {
     animation: none !important;
+  }
+}
+
+/* ===== 技法训练 · 教练工坊（分阶段：认识→试听→跟练→累计） ===== */
+.challenge-page .atlas-stage {
+  grid-template-columns: 300px 1fr;
+  align-items: start;
+  gap: 35px;
+  padding: 30px 0;
+  min-height: 400px;
+}
+.challenge-page .atlas-description h2 {
+  font-size: 34px;
+}
+.challenge-page .atlas-description > p {
+  max-width: 285px;
+  font-size: 13px;
+  line-height: 2;
+  color: #b7c4a7;
+  min-height: 0;
+}
+.challenge-page .atlas-description .small-label {
+  font-size: 12px;
+}
+/* 阶段进度徽章（标题右侧） */
+.coach-progress-badge {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 12px 18px;
+  background: #171b17aa;
+}
+.coach-progress-badge strong {
+  font-family: var(--latin);
+  font-size: 30px;
+  font-weight: 400;
+  letter-spacing: 1px;
+  color: var(--gold);
+  line-height: 1;
+}
+.coach-progress-badge strong small {
+  font-size: 13px;
+  color: #87937a;
+}
+.coach-progress-badge > span {
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: #93a780;
+}
+/* 14 段导航条 */
+.coach-rail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+  margin-bottom: 6px;
+}
+.coach-rail button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 11px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: transparent;
+  color: #71805f;
+  transition:
+    color 0.15s,
+    border-color 0.15s,
+    background 0.15s;
+}
+.coach-rail button > span {
+  font-family: var(--latin);
+  font-size: 10px;
+  min-width: 14px;
+  text-align: center;
+  opacity: 0.8;
+}
+.coach-rail button b {
+  font-weight: 400;
+  font-size: 10px;
+  letter-spacing: 0.6px;
+}
+.coach-rail button.done {
+  color: #a9b795;
+}
+.coach-rail button.done > span::after {
+  content: "✓";
+}
+.coach-rail button.done > span {
+  font-size: 0;
+}
+.coach-rail button.done > span::after {
+  font-size: 10px;
+}
+.coach-rail button.current {
+  border-color: color-mix(in srgb, var(--gold) 45%, transparent);
+  background: #e3c39410;
+  color: var(--gold);
+}
+.coach-rail button:not(.done):not(.current):not(:disabled):hover {
+  color: #c8d2b2;
+  border-color: var(--line);
+}
+.coach-rail button:disabled {
+  opacity: 0.38;
+}
+/* 左右对照试听（下滑 vs 回滑） */
+.coach-compare {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 18px;
+}
+.compare-hint {
+  font-size: 11px;
+  line-height: 1.9;
+  color: #9fb08b;
+}
+.compare-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.compare-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 10px 8px 12px;
+  border: 1px solid color-mix(in srgb, var(--tech) 30%, transparent);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--tech) 6%, transparent);
+  color: var(--tech);
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+.compare-card:hover {
+  background: color-mix(in srgb, var(--tech) 12%, transparent);
+}
+.compare-card.playing {
+  border-color: var(--tech);
+  background: color-mix(in srgb, var(--tech) 16%, transparent);
+  animation: coach-pulse 1.1s ease-in-out infinite;
+}
+.compare-card .technique-ribbon {
+  width: 100%;
+  height: auto;
+  max-height: 62px;
+}
+.compare-card b {
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 3px;
+}
+.compare-card > span {
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: #98a687;
+}
+@keyframes coach-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 color-mix(in srgb, var(--tech) 0%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 18px color-mix(in srgb, var(--tech) 35%, transparent);
+  }
+}
+.coach-start {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+}
+/* 阶段小结条 */
+.coach-result {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-top: 18px;
+  padding: 16px 22px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #171b1799;
+  animation: coach-result-in 0.35s ease-out;
+}
+@keyframes coach-result-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.coach-result > div {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 auto;
+}
+.coach-result strong {
+  font-family: var(--latin);
+  font-size: 34px;
+  font-weight: 400;
+  line-height: 1;
+  color: #d8b06a;
+}
+.coach-result strong small {
+  font-size: 14px;
+  color: #87937a;
+}
+.coach-result > div > span {
+  margin-top: 7px;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: #93a780;
+}
+.coach-result p {
+  font-size: 12px;
+  line-height: 1.9;
+  color: #b7c4a7;
+}
+.coach-result.passed {
+  border-color: color-mix(in srgb, var(--gold) 35%, transparent);
+}
+.coach-result.passed strong {
+  color: var(--gold);
+}
+/* 下方打击板：只渲染本段用到的轨 */
+.coach-controls {
+  margin-top: 22px;
+}
+.coach-pads {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.coach-pads button {
+  flex: 1 1 130px;
+  min-width: 118px;
+  min-height: 66px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: 1px solid color-mix(in srgb, var(--lane) 28%, transparent);
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--lane) 4%, transparent);
+  color: var(--lane);
+  transition:
+    background 0.07s,
+    box-shadow 0.07s;
+}
+.coach-pads button.pressed,
+.coach-pads button:active {
+  background: color-mix(in srgb, var(--lane) 25%, transparent);
+  box-shadow: 0 0 24px color-mix(in srgb, var(--lane) 18%, transparent);
+}
+.coach-pads kbd {
+  font-family: var(--latin);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+  border: none;
+  padding: 0;
+  background: transparent;
+}
+.coach-pads button b {
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 1.5px;
+}
+.coach-pads button > span {
+  font-size: 8px;
+  letter-spacing: 1px;
+  opacity: 0.72;
+}
+.coach-pads button.hold-pad {
+  border-style: dashed;
+}
+.coach-pads button.hold-pad.holding {
+  background: color-mix(in srgb, var(--lane) 32%, transparent);
+  box-shadow: inset 0 0 22px color-mix(in srgb, var(--lane) 30%, transparent);
+}
+.coach-hint {
+  margin-top: 11px;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  line-height: 1.8;
+  color: #8e9a82;
+}
+/* 教练对话：小字关卡信息 + 大字指令台词（画面主角） */
+.coach-heading {
+  margin-bottom: 14px;
+}
+.coach-chat {
+  padding-top: 6px;
+}
+.coach-chat .chat-meta {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--tech);
+  opacity: 0.85;
+}
+.coach-chat .chat-line {
+  font-family: var(--serif);
+  font-size: clamp(21px, 2.1vw, 27px);
+  line-height: 1.75;
+  letter-spacing: 1px;
+  color: #eef0e2;
+  margin: 14px 0 0;
+  min-height: 100px;
+  animation: chat-line-in 0.4s ease-out;
+}
+@keyframes chat-line-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+/* 完整动作曲线：本段音符一次画全，播放时逐段点亮；
+   高度按 viewBox 700×270 自然比例随列宽放大，铺满曲线区，避免下方留大片空白 */
+.atlas-art > .stage-curve {
+  max-height: none;
+  height: auto;
+  margin-top: 8px;
+}
+/* 3-2-1 倒计时浮层（盖在曲线区正中） */
+.coach-countdown {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  pointer-events: none;
+  background: #0e120e55;
+}
+.coach-countdown b {
+  font-family: var(--latin);
+  font-size: 110px;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--gold);
+  text-shadow: 0 0 40px #e3c39466;
+  animation: coach-count-pop 0.9s ease-out;
+}
+.coach-countdown span {
+  font-size: 12px;
+  letter-spacing: 6px;
+  color: #cdd6bd;
+}
+@keyframes coach-count-pop {
+  0% {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0.85;
+    transform: scale(1);
+  }
+}
+/* 达标自动进关过渡浮层：盖在曲线区，提示"AI 正在匹配下一题" */
+.coach-matching {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  pointer-events: none;
+  background: #0e120ecc;
+  animation: matching-in 0.3s ease-out;
+}
+.coach-matching .matching-pulse {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 2px solid #e3c39433;
+  border-top-color: var(--gold);
+  animation: matching-spin 0.9s linear infinite;
+}
+.coach-matching > span {
+  font-size: 15px;
+  letter-spacing: 4px;
+  color: #e8dfc8;
+}
+@keyframes matching-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes matching-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .coach-chat .chat-line,
+  .coach-countdown b,
+  .coach-matching,
+  .coach-matching .matching-pulse {
+    animation: none !important;
+  }
+}
+@media (max-width: 850px) {
+  .challenge-page .atlas-stage {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+  .coach-chat .chat-line {
+    min-height: 0;
+  }
+  .coach-countdown b {
+    font-size: 80px;
+  }
+  .coach-rail button b {
+    display: none;
+  }
+  .coach-rail button {
+    padding: 6px 8px;
   }
 }

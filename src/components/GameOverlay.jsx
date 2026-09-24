@@ -34,8 +34,8 @@ export default function GameOverlay({ game }) {
       </div>
     );
   if (game.status === "paused") {
-    // 声音地图暂停只靠圆形播放按钮的图标切换，不盖全屏遮罩，动画保持可见
-    if (game.screen === "map") return null;
+    // 声音地图/技法训练暂停只靠圆形播放按钮的图标切换，不盖全屏遮罩，动画保持可见
+    if (game.screen === "map" || game.screen === "challenge") return null;
     return (
       <div className="game-overlay">
         <Eyebrow>已暂停</Eyebrow>
@@ -64,8 +64,9 @@ export default function GameOverlay({ game }) {
         </button>
       </div>
     );
-  if (game.status === "armed")
-    // 音频就绪后的确认一步：不点“开始”就永远不进倒数，给足心理准备
+  if (game.status === "armed") {
+    // 技法训练（教练模式）自己管理“认识→跟练”流程，不弹全屏确认遮罩
+    if (game.screen === "challenge") return null;
     return (
       <div className="game-overlay arm-overlay">
         <Eyebrow>原声已就绪</Eyebrow>
@@ -80,8 +81,10 @@ export default function GameOverlay({ game }) {
         </button>
       </div>
     );
+  }
   if (
     game.status === "playing" &&
+    game.screen !== "challenge" &&
     (game.screen === "rhythm" ? game.countdown > 0 : game.time < 0)
   ) {
     // 跟拍游戏：预备拍按当前 BPM 走满 8 拍（8-7-…-1），与逐点闪烁、模拟点击同拍；

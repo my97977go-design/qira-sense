@@ -13,12 +13,22 @@ import syllabus from "../data/course.json";
 import StringSculpture from "../visuals/StringSculpture.jsx";
 import ParticleField from "../visuals/ParticleField.jsx";
 
-// 入口 id → 页面 screen。
+// 阶段 id → 页面 screen。阶段二「技法工坊」为教练模式（challenge）。
 const ENTRY_SCREEN = {
   rhythm: "rhythm",
-  soundMap: "map",
-  learning: "learning",
+  learning: "challenge",
   finalTest: "finalTest",
+};
+// 卡片上的按钮角色：一竖（节奏热身）+ 二横（工坊 / 听辨）。
+const ENTRY_CLASS = {
+  rhythm: "tall-entry",
+  learning: "side-entry",
+  finalTest: "side-entry",
+};
+const ENTRY_STEP = {
+  rhythm: "热身阶段",
+  learning: "教练模式",
+  finalTest: "挑战模式",
 };
 
 export default function CourseHome({ game, muted }) {
@@ -87,12 +97,12 @@ export default function CourseHome({ game, muted }) {
               className="text-button"
               onClick={() => game.navigate("map")}
             >
-              先看教学示例
+              声音地图 · 先看教学示例
               <ArrowUpRight size={16} />
             </button>
           </div>
           <p className="course-hero-note">
-            当前示范课程：《大起板》 · 四个入口全部开放，可直接开始快速听辨测试
+            当前示范课程：《大起板》 · 三个阶段全部开放，可直接开始快速听辨测试
           </p>
         </div>
         <div className="course-hero-art" ref={heroArtRef}>
@@ -104,10 +114,11 @@ export default function CourseHome({ game, muted }) {
         <div className="section-title">
           <div>
             <span className="section-index">学习路径</span>
-            <h2>四个入口，自由探索</h2>
+            <h2>三个阶段，跟着教练走</h2>
             <p>
-              节奏、声音地图、技法训练与快速听辨测试
-              全部直接开放。已经具备识别能力的学习者可以直接测试，通过即完成本章。
+              节奏热身 → 技法工坊 → 快速听辨测试，全部直接开放。
+              已经具备识别能力的学习者可以直接测试，通过即完成本章。
+              下方的下落挑战是主线之外的独立入口。
             </p>
           </div>
           <div className="route-progress">
@@ -115,7 +126,7 @@ export default function CourseHome({ game, muted }) {
               {doneCount}
               <small> / {entries.length}</small>
             </b>
-            <span>入口已体验</span>
+            <span>阶段已完成</span>
           </div>
         </div>
         <div className="chapter-heading">
@@ -136,8 +147,8 @@ export default function CourseHome({ game, muted }) {
               <article
                 key={l.id}
                 className={`lesson-card clickable ${done ? "completed" : "available"} ${
-                  isFinal ? "final-entry" : ""
-                }`}
+                  ENTRY_CLASS[l.id] || ""
+                } ${isFinal ? "final-entry" : ""}`}
                 role="button"
                 tabIndex={0}
                 aria-label={`进入${l.title}`}
@@ -164,7 +175,7 @@ export default function CourseHome({ game, muted }) {
                   </span>
                 </div>
                 <span className="lesson-step">
-                  {isFinal ? "掌握测评" : `入口 ${l.number}`}
+                  阶段 {l.number} · {ENTRY_STEP[l.id] || "自由探索"}
                 </span>
                 <h3>{l.title}</h3>
                 <p>{l.subtitle}</p>
@@ -203,7 +214,7 @@ export default function CourseHome({ game, muted }) {
                 </span>
                 <span className="lesson-state egg-state">隐藏彩蛋</span>
               </div>
-              <span className="lesson-step">彩蛋关卡</span>
+              <span className="lesson-step">独立入口 · 下落挑战</span>
               <h3>{s.title}</h3>
               <p>{s.subtitle}</p>
               <div className="lesson-bottom">

@@ -4,6 +4,7 @@ export class AudioTransport {
     this.context = null;
     this.buffer = null;
     this.source = null;
+    this.envGain = null;
     this.phase = "idle";
     this.offset = 0;
     this.limit = 0;
@@ -67,7 +68,17 @@ export class AudioTransport {
     source.playbackRate.value = this.rate;
     // 慢速精标时保留真实音高走向（滑音轮廓可闻），只拉伸时间不变调。
     if ("preservesPitch" in source) source.preservesPitch = true;
-    source.connect(this.analyser || this.gain);
+    // 每次播放挂一条独立的淡入淡出包络：片段首尾轻推音量，避免爆音、切口更柔。
+    const env = this.context.createGain();
+    const dur = (this.limit - this.offset) / this.rate;
+    const fade = Math.min(0.15, dur / 4);
+    env.gain.setValueAtTime(0.0001, this.startedAt);
+    env.gain.linearRampToValueAtTime(1, this.startedAt + fade);
+    env.gain.setValueAtTime(1, Math.max(this.startedAt + fade, this.startedAt + dur - fade));
+    env.gain.linearRampToValueAtTime(0.0001, this.startedAt + dur);
+    source.connect(env);
+    env.connect(this.analyser || this.gain);
+    this.envGain = env;
     this.source = source;
     this.phase = "playing";
     source.onended = () => {
@@ -105,6 +116,10 @@ export class AudioTransport {
   disconnectSource() {
     const old = this.source;
     this.source = null;
+    if (this.envGain) {
+      this.envGain.disconnect();
+      this.envGain = null;
+    }
     if (old) {
       old.onended = null;
       try {

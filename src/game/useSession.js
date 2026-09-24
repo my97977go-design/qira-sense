@@ -10,6 +10,7 @@ import {
   HIT_WINDOW,
   LANES,
 } from "./chart.js";
+import { HOLD_LEAD_WINDOW } from "./coachStages.js";
 import { loadCalibration } from "./beatCalibration.js";
 import { COUNT_IN_SECONDS, detectLeadSilence } from "../audio/leadIn.js";
 
@@ -69,6 +70,7 @@ const initial = () => ({
   feedback: null,
   padFlashes: LANES.map(() => 0),
   holding: null,
+  holdEngaged: {},
   summary: null,
   error: "",
 });
@@ -250,6 +252,33 @@ export default function useSession(song) {
       }
     }
   };
+  // 教练模式：播放阶段片段。不清累计成绩、不换屏，可顺带装载本阶段音符；
+  // resetIds 用于“重练本段”时清掉本段音符的旧判定。delay 提供预备拍。
+  const playClip = async ({ start, end, delay = 0, notes, resetIds }) => {
+    const request = ++token.current;
+    try {
+      await transport.load(song.audio);
+      if (request !== token.current) return;
+      const s = session.current;
+      if (Array.isArray(resetIds)) for (const id of resetIds) delete s.results[id];
+      if (notes) s.notes = notes;
+      s.holding = null;
+      s.holdEngaged = {};
+      s.combo = 0;
+      s.feedback = null;
+      s.clipEnd = end;
+      s.status = "playing";
+      s.time = start - delay;
+      transport.play(Math.max(0, start), delay, Math.min(end, song.duration));
+      publish();
+    } catch (error) {
+      if (request === token.current) {
+        session.current.status = "error";
+        session.current.error = error.message;
+        publish();
+      }
+    }
+  };
   const finishLesson = (summary) => {
     token.current++;
     transport.stop();
@@ -261,7 +290,7 @@ export default function useSession(song) {
     const s = session.current;
     if (
       s.status !== "playing" ||
-      !["rhythm", "challenge"].includes(s.screen) ||
+      !["rhythm", "challenge", "falling"].includes(s.screen) ||
       transport.timeUntilStart > 0 ||
       LANES[lane]?.hold
     )
@@ -271,22 +300,35 @@ export default function useSession(song) {
     const note = closestNote(s.notes, s.results, time, lane);
     if (note) resolve(note, judgement(time - note.time), time);
     else {
-      s.combo = 0;
-      s.feedback = {
-        grade: "empty",
-        label: "跟上下一拍",
-        born: performance.now(),
-        serial: `empty-${performance.now()}`,
-      };
+      // 教练累计跟练：命中上一阶段已结算的音符只亮板，不罚连击。
+      const echoed =
+        s.screen === "challenge" &&
+        s.notes.some(
+          (n) =>
+            n.kind !== "hold" &&
+            n.lane === lane &&
+            s.results[n.id] &&
+            Math.abs(n.time - time) <= HIT_WINDOW + 1e-8,
+        );
+      if (!echoed) {
+        s.combo = 0;
+        s.feedback = {
+          grade: "empty",
+          label: "跟上下一拍",
+          born: performance.now(),
+          serial: `empty-${performance.now()}`,
+        };
+      }
     }
     publish();
   };
-  // 长按：按下记住光条，松手按按住时长结算（识别正确 + 时长大差不差）。
+  // 长按：教练（challenge）容错——早/晚 0.5s 内落指都算跟上开头，松手太短不判死，
+  // 按住的时长跨多次落指累计；下落式（falling）保留经典严格判定：光条头部窗口内落指。
   const holdStart = (lane) => {
     const s = session.current;
     if (
       s.status !== "playing" ||
-      s.screen !== "challenge" ||
+      !["challenge", "falling"].includes(s.screen) ||
       transport.timeUntilStart > 0 ||
       !LANES[lane]?.hold ||
       s.holding
@@ -294,7 +336,17 @@ export default function useSession(song) {
       return;
     const time = transport.time - options.current.calibration / 1000;
     s.padFlashes[lane] = performance.now();
-    const note = closestHoldNote(s.notes, s.results, time, lane);
+    const note =
+      s.screen === "falling"
+        ? closestHoldNote(s.notes, s.results, time, lane)
+        : s.notes.find(
+            (n) =>
+              n.kind === "hold" &&
+              n.lane === lane &&
+              !s.results[n.id] &&
+              time >= n.time - HOLD_LEAD_WINDOW &&
+              time < n.end,
+          );
     if (note) s.holding = { noteId: note.id, lane, start: time };
     else {
       s.combo = 0;
@@ -310,12 +362,37 @@ export default function useSession(song) {
   const holdEnd = (lane) => {
     const s = session.current;
     if (!s.holding || s.holding.lane !== lane) return;
+    const holding = s.holding;
     const time = transport.time - options.current.calibration / 1000;
-    const hold = time - s.holding.start;
-    const note = s.notes.find((n) => n.id === s.holding.noteId);
+    const note = s.notes.find((n) => n.id === holding.noteId);
     s.holding = null;
-    if (note && !s.results[note.id])
-      resolve(note, judgementHold(hold, note.end - note.time), time);
+    if (note && !s.results[note.id]) {
+      if (s.screen === "falling")
+        // 下落式：一次按住从头算到尾，按实际时长直接结算（经典规则）。
+        resolve(
+          note,
+          judgementHold(time - holding.start, note.end - note.time),
+          time,
+        );
+      else {
+        const len = Math.max(0.01, note.end - note.time);
+        const overlap = Math.max(
+          0,
+          Math.min(time, note.end) - Math.max(holding.start, note.time),
+        );
+        const accum = (s.holdEngaged[note.id] || 0) + overlap;
+        s.holdEngaged = { ...s.holdEngaged, [note.id]: accum };
+        if (time >= note.end || accum >= len * 0.8)
+          resolve(note, judgementHold(accum, len), time);
+        else if (overlap > 0.08)
+          s.feedback = {
+            grade: "retry",
+            label: "按得太短了，再按一次",
+            born: performance.now(),
+            serial: `retry-${performance.now()}`,
+          };
+      }
+    }
     publish();
   };
   useEffect(() => {
@@ -334,10 +411,14 @@ export default function useSession(song) {
         s.time = transport.time;
         s.countdown = transport.timeUntilStart;
         if (s.screen !== "map") {
-          const judgedTime = s.time - options.current.calibration / 1000;
-          for (const note of s.notes) {
-            if (note.time >= judgedTime - HIT_WINDOW) break;
-            if (!s.results[note.id]) resolve(note, judgement(Infinity), s.time);
+          // 教练模式不在逐帧里判死：漏没漏由阶段结算面板统一统计。
+          if (s.screen !== "challenge") {
+            const judgedTime = s.time - options.current.calibration / 1000;
+            for (const note of s.notes) {
+              if (note.time >= judgedTime - HIT_WINDOW) break;
+              if (!s.results[note.id])
+                resolve(note, judgement(Infinity), s.time);
+            }
           }
           if (options.current.metronome && s.screen === "rhythm") {
             const next = s.notes.find(
@@ -365,7 +446,22 @@ export default function useSession(song) {
         }
         if (transport.phase === "ended") {
           if (s.screen === "map") s.status = "finished";
-          else {
+          else if (s.screen === "challenge") {
+            // 教练回合结束：仍按住的长音按“按到结尾”结算；
+            // 其余音符保持未决（由阶段面板计为漏）。不写 summary，不弹排行。
+            if (s.holding) {
+              const note = s.notes.find((n) => n.id === s.holding.noteId);
+              if (note && !s.results[note.id]) {
+                const len = Math.max(0.01, note.end - note.time);
+                const accum =
+                  (s.holdEngaged[note.id] || 0) +
+                  Math.max(0, note.end - Math.max(s.holding.start, note.time));
+                resolve(note, judgementHold(accum, len), s.time);
+              }
+              s.holding = null;
+            }
+            s.status = "finished";
+          } else {
             // 收尾时仍按住的光条：按已按住时长结算，其余未结算判 miss
             if (s.holding) {
               const note = s.notes.find((n) => n.id === s.holding.noteId);
@@ -442,6 +538,7 @@ export default function useSession(song) {
     confirm: confirmStart,
     togglePause,
     seek,
+    playClip,
     tap,
     holdStart,
     holdEnd,

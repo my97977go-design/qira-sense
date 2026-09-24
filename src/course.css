@@ -278,9 +278,10 @@
   border-radius: 50%;
   background: #b8cd95;
 }
+/* 左：节奏热身竖长条（跨两行）；右：技法工坊 / 快速听辨两个横按钮；下方整行：下落挑战独立入口 */
 .lesson-path {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: minmax(230px, 1fr) 1.8fr;
   gap: 17px;
   position: relative;
 }

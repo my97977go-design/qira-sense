@@ -545,11 +545,11 @@ export default function FinalListeningTest({ game, song }) {
               <p>
                 薄弱技法：
                 {weak.map((t) => techFor(t).name).join("、")}
-                。建议回到自适应学习针对练习。
+                。建议回到技法工坊，跟着教练再练一遍。
               </p>
               <button
                 className="secondary-button"
-                onClick={() => game.navigate("learning")}
+                onClick={() => game.navigate("challenge")}
               >
                 去练习
               </button>

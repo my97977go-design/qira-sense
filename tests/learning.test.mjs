@@ -64,11 +64,13 @@ test("library examples reference actual annotations; conceptual large glide neve
     assert.throws(() => validateLibrary(copy));
   }
 });
-test("all four entries open immediately; chapter completes only via passing Final Test", () => {
+test("three learning stages plus the falling side-room open immediately; chapter completes only via passing Final Test", () => {
   let p = {};
-  // 四入口与提示挑战全部直接进入，无前置条件。
-  for (const id of ["rhythm", "soundMap", "learning", "finalTest", "challenge"])
+  // 三个学习阶段与独立入口「下落挑战」全部直接进入，无前置条件。
+  for (const id of ["rhythm", "learning", "finalTest", "falling"])
     assert.equal(isUnlocked(id, p), true);
+  // 声音地图不再是学习阶段，只作为页面上方入口可达。
+  assert.equal(isUnlocked("soundMap", p), false);
   // 未通过 Final Test 时，后续章节不解锁。
   assert.equal(chapterUnlocked("timbre", p), false);
   // 完成节奏热身不解锁下一章（不再是章节完成的条件）。

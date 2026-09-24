@@ -6,7 +6,7 @@ export const techFor = (id) => {
   const t = TECHNIQUES.find((t) => t.id === id) || TECHNIQUES[0];
   return { ...t, description: t.shortExplanation };
 };
-function point(id, x, repeat, dynamics, duration = 2.6) {
+export function point(id, x, repeat, dynamics, duration = 2.6) {
   const local = repeat > 1 ? (x * repeat) % 1 : x;
   let y;
   if (id === "large-up-glide")
@@ -174,6 +174,102 @@ export default function TechniqueRibbon({
             strokeWidth="2"
           />
         </g>
+      )}
+    </svg>
+  );
+}
+
+// 整段完整曲线：把本段全部音符按真实时间位置一次画全（如四个上滑音同屏出现），
+// 空档用平缓连线补成连续轨迹；播放中由左向右点亮已走过的部分。
+export function StageCurve({
+  items = [],
+  from = 0,
+  to = 1,
+  time = 0,
+  techFor,
+  playing = false,
+}) {
+  const uid = useId().replaceAll(":", "");
+  const span = Math.max(0.01, to - from);
+  const xOf = (t) => 26 + Math.min(1, Math.max(0, (t - from) / span)) * 648;
+  const segs = [];
+  let cursor = from,
+    lastY = 24 + 0.6 * 206;
+  for (const it of items) {
+    const tech = techFor(it.technique);
+    const s = Math.max(cursor, it.start),
+      e = Math.min(to, it.end);
+    if (e <= s) continue;
+    if (s > cursor + 0.001)
+      segs.push({ gap: true, d: `M${xOf(cursor).toFixed(1)},${lastY.toFixed(1)}L${xOf(s).toFixed(1)},${lastY.toFixed(1)}` });
+    const n = 40,
+      dur = Math.max(0.5, e - s),
+      x0 = xOf(s),
+      x1 = xOf(e);
+    let d = "";
+    for (let i = 0; i <= n; i++) {
+      const u = i / n,
+        y = point(tech.animation, Math.min(0.999999, u), 1, "steady", dur)[1];
+      d += `${i ? "L" : "M"}${(x0 + u * (x1 - x0)).toFixed(1)},${y.toFixed(1)}`;
+    }
+    segs.push({ gap: false, d, color: tech.color, start: s });
+    lastY = point(tech.animation, 0.999999, 1, "steady", dur)[1];
+    cursor = e;
+  }
+  if (cursor < to - 0.001)
+    segs.push({ gap: true, d: `M${xOf(cursor).toFixed(1)},${lastY.toFixed(1)}L${xOf(to).toFixed(1)},${lastY.toFixed(1)}` });
+  const prog = Math.min(1, Math.max(0, (time - from) / span));
+  return (
+    <svg
+      className="technique-ribbon stage-curve"
+      viewBox="0 0 700 270"
+      role="img"
+      aria-label={`本段共 ${items.length} 个音符的完整动作曲线`}
+    >
+      <defs>
+        <clipPath id={`stage-clip-${uid}`}>
+          <rect x="0" y="0" width={prog * 700} height="270" />
+        </clipPath>
+        <filter id={`stage-glow-${uid}`} x="-20%" y="-40%" width="140%" height="180%">
+          <feGaussianBlur stdDeviation="6" />
+        </filter>
+      </defs>
+      {[70, 135, 200].map((py) => (
+        <path key={py} d={`M10 ${py}H690`} stroke="#ffffff08" strokeDasharray="2 7" />
+      ))}
+      <g fill="none" strokeLinecap="round" strokeLinejoin="round">
+        {segs.map((sg, i) => (
+          <path
+            key={`base-${i}`}
+            d={sg.d}
+            stroke={sg.gap ? "#8fa07d" : sg.color}
+            strokeWidth={sg.gap ? 3 : 11}
+            opacity={sg.gap ? 0.18 : 0.24}
+            {...(!sg.gap && { filter: `url(#stage-glow-${uid})`, opacity: 0.14, strokeWidth: 18 })}
+          />
+        ))}
+        {segs.map((sg, i) => (
+          <path
+            key={`lit-${i}`}
+            d={sg.d}
+            stroke={sg.gap ? "#a8b795" : sg.color}
+            strokeWidth={sg.gap ? 3 : 10}
+            opacity={sg.gap ? 0.3 : 0.9}
+            clipPath={`url(#stage-clip-${uid})`}
+          />
+        ))}
+      </g>
+      {items.map((it) => {
+        const tech = techFor(it.technique);
+        const passed = time >= it.start;
+        return (
+          <g key={it.id}>
+            <circle cx={xOf(it.start)} cy={point(tech.animation, 0, 1, "steady", Math.max(0.5, it.end - it.start))[1]} r={passed ? 7 : 5} fill={passed ? "#fff9ec" : tech.color} opacity={passed ? 0.95 : 0.5} stroke={tech.color} strokeWidth="2" />
+          </g>
+        );
+      })}
+      {playing && prog > 0 && prog < 1 && (
+        <path d={`M${xOf(time).toFixed(1)},18V252`} stroke="#fff3db" strokeWidth="1.5" opacity=".4" />
       )}
     </svg>
   );

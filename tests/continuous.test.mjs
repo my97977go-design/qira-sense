@@ -351,6 +351,14 @@ function fake() {
       sources.push(s);
       return s;
     },
+    createGain: () => ({
+      gain: {
+        setValueAtTime() {},
+        linearRampToValueAtTime() {},
+      },
+      connect() {},
+      disconnect() {},
+    }),
   };
   return { t, sources };
 }

@@ -4,7 +4,8 @@ import { summarize } from "../game/chart.js";
 export const modes = {
   rhythm: "听见节奏",
   listening: "看懂技法（历史）",
-  challenge: "技法挑战",
+  challenge: "技法工坊",
+  falling: "光弦坠落",
 };
 export function RankingHint({ game }) {
   const rank = game.ranking,

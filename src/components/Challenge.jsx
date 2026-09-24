@@ -1,152 +1,422 @@
-import { RankingHint } from "./Ranking.jsx";
-import { ArrowRight, Play, Disc3 } from "lucide-react";
-import { LANES, activeLayerAt, makeChart } from "../game/chart.js";
-import { Eyebrow, Score, Feedback, formatBpm } from "./Elements.jsx";
-import Highway from "./Highway.jsx";
+import { useEffect, useMemo, useState } from "react";
+import { Play, Pause, RotateCcw, ArrowRight } from "lucide-react";
+import { LANES, summarize } from "../game/chart.js";
+import {
+  COACH_STAGES,
+  COACH_PASS_AT,
+  coachNotes,
+  stageNotes,
+  stageLanes,
+} from "../game/coachStages.js";
+import { Eyebrow, Feedback, running } from "./Elements.jsx";
+import TechniqueRibbon, { StageCurve } from "../visuals/TechniqueRibbon.jsx";
 import { useKnowledge } from "../knowledge/KnowledgeContext.jsx";
-import TechniqueRibbon from "../visuals/TechniqueRibbon.jsx";
-import beatPreview from "../data/beat-preview.json";
+
+// 教练模式预演的“事件展示窗”：点事件 anchor±0.35，长按取录入起止。
+function displayItems(notes, duration) {
+  return notes.map((n) => ({
+    id: n.id,
+    technique: n.technique,
+    start: n.kind === "hold" ? n.time : Math.max(0, n.time - 0.35),
+    end:
+      n.kind === "hold" ? n.end : Math.min(duration, n.time + (n.end ? 0 : 0.35)),
+    label: n.label,
+    hold: n.kind === "hold",
+  }));
+}
+
+// 跟练播放前的“3、2、1”预备秒数（ceil 后正好倒数三个数字）；试听不加倒计时。
+const PRE_DELAY = 2.6;
+// 达标后停留片刻，让指令说完再自动进关。
+const AUTO_NEXT_MS = 2800;
+
 export default function Challenge({ game, song }) {
   const { techFor } = useKnowledge();
-  const preview = makeChart(song, game.beat || beatPreview),
-    active = activeLayerAt(song, game.time),
-    tech = active ? techFor(active.technique) : null;
+  const allNotes = useMemo(() => coachNotes(song), [song]);
+  const [stageIndex, setStageIndex] = useState(0);
+  // intro 认识概念（对照试听段也停留在 intro）→ previewing 听新片段
+  // → ready 该上手 → practicing 跟练 → result 阶段结算 → done 全曲完成。
+  const [phase, setPhase] = useState("intro");
+  const [compareSide, setCompareSide] = useState(null);
+  const [rep, setRep] = useState(1);
+  const [outcome, setOutcome] = useState(null);
+  const stage = COACH_STAGES[stageIndex];
+  const stageIds = useMemo(
+    () => stageNotes(stage, allNotes).map((n) => n.id),
+    [stage, allNotes],
+  );
+  const practiceNotes = useMemo(
+    () => stageNotes(stage, allNotes),
+    [stage, allNotes],
+  );
+  const lanes = useMemo(() => stageLanes(stage, allNotes), [stage, allNotes]);
+  // 本段全部音符的完整曲线（一次性同屏展示，而不是单个技法反复切换）。
+  const stageItems = useMemo(
+    () =>
+      displayItems(practiceNotes, song.duration).filter(
+        (i) => i.end > stage.from && i.start < stage.to,
+      ),
+    [practiceNotes, song.duration, stage],
+  );
+
+  // 音频进页面就开始加载；试听/跟练都由用户点击触发（满足自动播放策略）。
+  useEffect(() => {
+    if (game.status === "ready" || game.status === "finished" && !game.summary)
+      if (game.session.current.screen !== "challenge") game.start("challenge");
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 片段播完（transport ended → status finished）后的阶段状态机。
+  useEffect(() => {
+    if (game.status !== "finished") return;
+    if (phase === "previewing") {
+      setPhase("ready");
+      return;
+    }
+    if (phase !== "practicing") return;
+    const results = game.session.current.results;
+    const hits = stageIds.filter((id) => results[id]?.success).length;
+    const rate = stageIds.length ? hits / stageIds.length : 1;
+    const passed = rate >= COACH_PASS_AT;
+    // 难点段：没过且还有额度 → 自动再来一遍“上、下、上、下”。
+    if (!passed && stage.drill && rep < stage.drill.reps) {
+      setRep((r) => r + 1);
+      game.playClip({
+        start: stage.from,
+        end: stage.to,
+        delay: PRE_DELAY,
+        notes: practiceNotes,
+        resetIds: stageIds,
+      });
+      return;
+    }
+    // 没跟上的方向感：按偏晚多＝太慢，偏早多＝太快，其余是没按到。
+    const judged = stageIds.map((id) => results[id]).filter(Boolean);
+    const misses = judged.filter(
+      (r) => !r.success && Number.isFinite(r.delta),
+    );
+    const late = misses.filter((r) => r.delta > 0.05).length;
+    const early = misses.filter((r) => r.delta < -0.05).length;
+    const untouched = stageIds.length - judged.length;
+    let pace = "有点没跟上";
+    if (late > early && late > 0) pace = "太慢了";
+    else if (early > late && early > 0) pace = "太快了";
+    else if (untouched > late + early) pace = "有几个音没按到";
+    setOutcome({ hits, total: stageIds.length, rate, passed, pace });
+    setPhase("result");
+  }, [game.status]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const nextStage = () => {
+    setStageIndex((i) => Math.min(COACH_STAGES.length - 1, i + 1));
+    setPhase("intro");
+    setOutcome(null);
+    setCompareSide(null);
+    setRep(1);
+  };
+
+  // 最终阶段通过 → 写整曲成绩（触发 GameOverlay 结算与排行榜弹窗）。
+  useEffect(() => {
+    if (phase === "result" && outcome?.passed && stageIndex === COACH_STAGES.length - 1) {
+      game.finishLesson(summarize(game.session.current.results, allNotes.length));
+      setPhase("done");
+    }
+  }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 达标 → 不点按钮，稍停片刻自动进入下一关。
+  useEffect(() => {
+    if (phase !== "result" || !outcome?.passed) return;
+    if (stageIndex === COACH_STAGES.length - 1) return;
+    const timer = setTimeout(nextStage, AUTO_NEXT_MS);
+    return () => clearTimeout(timer);
+  }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const previewClip = () => {
+    const pad = Math.max(0, (2 - (stage.newTo - stage.newFrom)) / 2);
+    setPhase("previewing");
+    game.playClip({
+      start: Math.max(0, stage.newFrom - pad),
+      end: Math.min(song.duration, stage.newTo + pad),
+      notes: [],
+    });
+  };
+  const startPractice = () => {
+    setRep(1);
+    setOutcome(null);
+    setPhase("practicing");
+    game.playClip({
+      start: stage.from,
+      end: stage.to,
+      delay: PRE_DELAY,
+      notes: practiceNotes,
+      resetIds: stageIds,
+    });
+  };
+  const retryStage = () => {
+    setRep(1);
+    setOutcome(null);
+    startPractice();
+  };
+  // 对照试听：始终停留在 intro，左右卡可反复点听（即点即听，不加倒计时）。
+  const playCompare = (side) => {
+    const c = stage.compare[side];
+    setCompareSide(side);
+    game.playClip({
+      start: Math.max(0, c.from - 0.15),
+      end: c.to,
+      notes: [],
+    });
+  };
+
+  const t = game.time;
+  const clipPlaying = running(game.status);
+  const countdown = Math.ceil(game.countdown || 0);
+  const now = performance.now();
+  const isLast = stageIndex === COACH_STAGES.length - 1;
+
+  // AI 教练对话台词：每个阶段一句明确指令，跟着流程即时切换。
+  const instruction = (() => {
+    if (phase === "intro")
+      return stage.compare
+        ? `来听个对比：${stage.compare.hint}`
+        : stage.debut
+          ? `来认识一下${stage.debut}吧！点击播放，听听是什么样？`
+          : `这一关是「${stage.title}」。点击播放，先听一遍！`;
+    if (phase === "previewing")
+      return "注意听，新的音色就藏在这几个音里。";
+    if (phase === "ready") return "听出来了吗？现在，请跟着我一起按吧！";
+    if (phase === "practicing")
+      return countdown > 0
+        ? "预备——手放在板上，跟着我做！"
+        : stage.drill
+          ? `就是现在！第 ${rep} 遍，跟着按！`
+          : "就是现在，跟着我一起按！";
+    if (phase === "result")
+      return outcome?.passed
+        ? isLast
+          ? "太棒了，全曲通关！来看看你的成绩。"
+          : `漂亮，${outcome.hits} 个音全跟上了！AI 正在匹配下一题……`
+        : `${outcome?.pace || "有点没跟上"}，再来一次吧！`;
+    return "全曲走完啦，你真棒！";
+  })();
+
   return (
-    <section className="play-page challenge-page">
-      <RankingHint game={game} />
-      <div className="page-heading">
-        <div>
-          <Eyebrow>隐藏彩蛋 · 光弦坠落</Eyebrow>
-          <h1>与光同行，在演奏中理解技法</h1>
-          <p>点技法到线即点；长按技法按住光条，时长大差不差即可。</p>
+    <section className="play-page challenge-page coach-page">
+      <div className="page-heading coach-heading">
+        <Eyebrow>技法工坊 · 教练模式</Eyebrow>
+        <div className="coach-progress-badge">
+          <strong>
+            {Math.min(stageIndex + 1, COACH_STAGES.length)}
+            <small>/{COACH_STAGES.length}</small>
+          </strong>
+          <span>阶段</span>
         </div>
-        <Score game={game} />
       </div>
-      <div className="challenge-layout">
-        <aside className="challenge-left">
-          <div className="challenge-track">
-            <Disc3 size={25} />
-            <span>正在挑战</span>
-            <h2>大起板</h2>
-            <p>高音板胡 · 原声片段</p>
-          </div>
-          <div className="challenge-facts">
-            <span>
-              <b>{formatBpm(game.beat?.bpm || beatPreview.bpm)}</b> BPM{" "}
-              <small>{game.manualBpm ? "手动" : "估算"}</small>
-            </span>
-            <span>
-              <b>{game.notes.length || preview.length}</b> 次触碰
-            </span>
-            <span>
-              <b>07</b> 条音轨
-            </span>
-          </div>
-          <div className="combo-box">
-            <strong>{game.combo.toString().padStart(2, "0")}</strong>
-            <span>连击</span>
-            <p>
-              {game.combo >= 10 ? "继续，手感正好。" : "从这一拍，连起来。"}
-            </p>
-          </div>
-          <label className="speed-control">
-            <span>
-              下落速度 <b>{game.speed.toFixed(1)}×</b>
-            </span>
-            <input
-              type="range"
-              min=".7"
-              max="1.5"
-              step=".1"
-              value={game.speed}
-              onChange={(e) => game.setSpeed(Number(e.target.value))}
-            />
-            <small>只改变视觉速度，音乐保持原速</small>
-          </label>
-        </aside>
-        <div className="highway-wrap">
-          {game.countdown > 0 && (
-            <div className="count-in" aria-live="polite">
-              <b key={Math.ceil(game.countdown)}>{Math.ceil(game.countdown)}</b>
-              <small>第一个声音随节拍进场</small>
-            </div>
-          )}
-          <Highway game={game} previewNotes={preview} />
-          <Feedback game={game} />
-          {game.status === "ready" && (
-            <div className="start-curtain">
-              <span className="small-label">连续演奏 · 技法与声音对应</span>
-              <h2>完成这段技法挑战</h2>
-              <p>
-                点技法按 D / F / J / K，
-                <br />
-                长按光条按住 1 / 2 / 3，或直接点按音轨。
-              </p>
-              <div className="key-demo">
-                {LANES.map((l) => (
-                  <kbd key={l.key} style={{ "--lane": l.color }}>
-                    {l.key}
-                  </kbd>
-                ))}
-              </div>
-              <button
-                className="primary-button"
-                onClick={() => game.start("challenge")}
-              >
-                <Play size={15} fill="currentColor" /> 开始连奏{" "}
-                <ArrowRight size={16} />
-              </button>
-              <small>38.88 秒，一次流畅的挑战</small>
-            </div>
-          )}
-        </div>
-        <aside className="challenge-right">
-          <span className="small-label">听见变化，理解表现</span>
-          <div
-            className="live-technique"
-            style={{ "--tech": tech?.color || "#b7b9ad" }}
+      <div className="coach-rail" aria-label="训练阶段列表">
+        {COACH_STAGES.map((s, i) => (
+          <button
+            key={s.id}
+            className={i === stageIndex ? "current" : i < stageIndex || (i === COACH_STAGES.length - 1 && phase === "done") ? "done" : ""}
+            disabled={i > stageIndex && phase !== "done"}
+            onClick={() => {
+              if (i < stageIndex) {
+                setStageIndex(i);
+                setPhase("intro");
+                setOutcome(null);
+                setCompareSide(null);
+              }
+            }}
+            title={s.title}
           >
-            <span>{tech ? "此刻的技法" : "让节奏继续"}</span>
-            <h2>{tech?.name || "节拍"}</h2>
-            <TechniqueRibbon mini technique={tech?.id || "vibrato"} />
-            <p>
-              {active
-                ? LANES.find((l) => l.ids.includes(active.technique))?.hold
-                  ? `持续状态 · 按住 ${
-                      LANES.find((l) => l.ids.includes(active.technique)).key
-                    } 号光条，约 ${(active.end - active.start).toFixed(1)} 秒`
-                  : active.dynamics === "crescendo"
-                    ? "渐强推进，接住每一下"
-                    : active.dynamics === "diminuendo"
-                      ? "渐弱收束，接住每一下"
-                      : active.repeatCount > 1
-                        ? `连续 ${active.repeatCount} 次，接住每一下`
-                        : tech.description
-                : "浅色短音符是衔接节拍，按对应音轨即可。"}
-            </p>
-          </div>
-          <div className="lane-guide">
-            {LANES.map((l) => (
-              <div
-                key={l.key}
-                className={l.hold ? "hold" : ""}
-                style={{ "--lane": l.color }}
-              >
-                <kbd>{l.key}</kbd>
-                <span>
-                  {l.name}
-                  {l.hold && <i>长按</i>}
-                </span>
-              </div>
+            <span>{i + 1}</span>
+            <b>{s.title}</b>
+          </button>
+        ))}
+      </div>
+      <div
+        className="atlas-stage coach-stage"
+        style={{ "--tech": techFor(stage.focus[0]).color || "#b9b9ab" }}
+      >
+        <div className="atlas-description coach-chat">
+          <span className="chat-meta">
+            第 {Math.min(stageIndex + 1, COACH_STAGES.length)} 关 · {stage.title}
+            {phase === "practicing" && stage.drill
+              ? ` · 第 ${rep}/${stage.drill.reps} 遍`
+              : ""}
+          </span>
+          <p className="chat-line" key={`${stageIndex}-${phase}-${rep}`}>
+            {instruction}
+          </p>
+          <div className="technique-tags">
+            {stage.focus.map((f) => (
+              <span key={f} style={{ "--tech": techFor(f).color }}>
+                {techFor(f).name}
+              </span>
             ))}
           </div>
-          <p className="play-hint">
-            漏掉一拍也没关系。
-            <br />
-            眼睛向前，接住下一个。
-          </p>
-        </aside>
+          {phase === "intro" &&
+            (stage.compare ? (
+              <div className="coach-compare" aria-label="对照试听">
+                <div className="compare-buttons">
+                  {["left", "right"].map((side) => {
+                    const c = stage.compare[side];
+                    const isPlaying = compareSide === side && clipPlaying;
+                    return (
+                      <button
+                        key={side}
+                        className={`compare-card${isPlaying ? " playing" : ""}`}
+                        style={{ "--tech": techFor(c.technique).color }}
+                        onClick={() => playCompare(side)}
+                      >
+                        <TechniqueRibbon mini technique={c.technique} />
+                        <b>{c.label}</b>
+                        <span>{isPlaying ? "正在播放…" : "点击试听"}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                <button className="primary-button coach-start" onClick={startPractice}>
+                  听够了，跟一遍 <ArrowRight size={16} />
+                </button>
+              </div>
+            ) : (
+              <button className="round-play round-play-invite" onClick={previewClip}>
+                <i className="round-play-disc" aria-hidden="true">
+                  <Play size={22} fill="currentColor" />
+                </i>
+                <span>点击播放</span>
+              </button>
+            ))}
+          {phase === "previewing" && (
+            <button
+              className="round-play"
+              onClick={() => game.togglePause()}
+              aria-label="暂停试听"
+            >
+              <i className="round-play-disc" aria-hidden="true">
+                {clipPlaying ? <Pause size={22} /> : <Play size={22} fill="currentColor" />}
+              </i>
+              <span>{clipPlaying ? "正在聆听" : "已暂停，点击继续"}</span>
+            </button>
+          )}
+          {phase === "ready" && (
+            <button className="round-play round-play-invite" onClick={startPractice}>
+              <i className="round-play-disc" aria-hidden="true">
+                <Play size={22} fill="currentColor" />
+              </i>
+              <span>跟着我，一起按</span>
+            </button>
+          )}
+          {phase === "practicing" && (
+            <button className="round-play" onClick={() => game.togglePause()} aria-label="暂停跟练">
+              <i className="round-play-disc" aria-hidden="true">
+                {clipPlaying ? <Pause size={22} /> : <Play size={22} fill="currentColor" />}
+              </i>
+              <span>
+                {countdown > 0
+                  ? "预备……马上开始"
+                  : clipPlaying
+                    ? "跟练进行中"
+                    : "已暂停，点击继续"}
+              </span>
+            </button>
+          )}
+          {phase === "result" &&
+            !outcome?.passed &&
+            !isLast && (
+              <button className="primary-button coach-start" onClick={retryStage}>
+                再来一次 <RotateCcw size={16} />
+              </button>
+            )}
+        </div>
+        <div className="atlas-art">
+          <div className="evidence-label">
+            完整动作曲线
+            <span>本段 {stageItems.length} 个音符一次看全，播放时逐段点亮</span>
+          </div>
+          <StageCurve
+            items={stageItems}
+            from={stage.from}
+            to={stage.to}
+            time={t}
+            techFor={techFor}
+            playing={clipPlaying}
+          />
+          {phase === "practicing" &&
+            countdown > 0 &&
+            countdown <= 3 && (
+              <div className="coach-countdown" key={countdown} aria-live="assertive">
+                <b>{countdown}</b>
+                <span>准备</span>
+              </div>
+            )}
+          {phase === "result" && outcome?.passed && !isLast && (
+            <div className="coach-matching" aria-live="polite">
+              <i className="matching-pulse" aria-hidden="true"></i>
+              <span>AI 正在匹配下一题</span>
+            </div>
+          )}
+          <Feedback game={game} />
+        </div>
       </div>
+      {phase === "result" && outcome && !outcome.passed && (
+        <div className="coach-result">
+          <div>
+            <strong>
+              {outcome.hits}
+              <small>/{outcome.total}</small>
+            </strong>
+            <span>跟上 {Math.round(outcome.rate * 100)}%</span>
+          </div>
+          <p>
+            {`${
+              outcome.pace === "太慢了"
+                ? "你按偏晚了"
+                : outcome.pace === "太快了"
+                  ? "你按偏早了"
+                  : "你有几个音没按到"
+            }，命中率要到 ${Math.round(COACH_PASS_AT * 100)}% 才能进下一关，再来一次！`}
+          </p>
+        </div>
+      )}
+      <div className="coach-controls">
+        <div className="coach-pads">
+          {lanes.map((lane) => {
+            const pad = LANES[lane];
+            const pressed = now - (game.padFlashes?.[lane] || 0) < 160;
+            const holding = game.holding?.lane === lane;
+            return (
+              <button
+                key={lane}
+                className={`${pressed ? "pressed" : ""} ${pad.hold ? "hold-pad" : ""} ${holding ? "holding" : ""}`}
+                style={{ "--lane": pad.color }}
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  pad.hold ? game.holdStart(lane) : game.tap(lane);
+                }}
+                onPointerUp={() => pad.hold && game.holdEnd(lane)}
+                onPointerLeave={() => holding && game.holdEnd(lane)}
+              >
+                <kbd>{pad.key}</kbd>
+                <b>{pad.name}</b>
+                <span>{pad.hold ? "长按" : "点按"}</span>
+              </button>
+            );
+          })}
+        </div>
+        <p className="coach-hint">
+          {stage.focus.includes("dayin")
+            ? "打音=打弓长音：在长音窗口内按住即可，早按晚按都算数，松手太短会提示你再按一次。"
+            : "键盘 D/F/J/K 对应四条点按轨；触屏可直接点下方的板。"}
+        </p>
+      </div>
+      {phase === "done" && (
+        <div className="coach-result passed">
+          <div>
+            <strong>41</strong>
+            <span>全部音符走过一遍</span>
+          </div>
+          <p>{stage.celebrate}</p>
+        </div>
+      )}
     </section>
   );
 }
